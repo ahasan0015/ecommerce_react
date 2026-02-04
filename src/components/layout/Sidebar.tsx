@@ -56,6 +56,11 @@ export default function Sidebar() {
           </NavLink>
         </li>
         <li className="nav-item">
+          <NavLink to="/coupons" className="nav-link sidebar-link">
+            🎁 Coupons
+          </NavLink>
+        </li>
+        <li className="nav-item">
           <NavLink to="/reports" className="nav-link sidebar-link">
             📈 Reports
           </NavLink>

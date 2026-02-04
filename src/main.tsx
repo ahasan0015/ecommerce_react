@@ -31,6 +31,7 @@ import ManageOrders from './components/pages/orders/ManageOrders.tsx';
 import ManageProducts from './components/pages/products/ManageProducts.tsx';
 import Reports from './components/pages/reports/Reports.tsx';
 import Settings from './components/pages/settings/Settings.tsx';
+import ManageCoupons from './components/pages/coupons/ManageCoupons.tsx';
 
 
 
@@ -56,6 +57,7 @@ const AppRoute = createBrowserRouter([
       {path:'/products', element: <ManageProducts/>},
       {path:'/reports', element: <Reports/>},
       {path:'/settings', element: <Settings/>},
+      {path:'/coupons', element: <ManageCoupons/>},
       
       
     ]
