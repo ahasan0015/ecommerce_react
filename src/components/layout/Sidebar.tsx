@@ -26,17 +26,17 @@ export default function Sidebar() {
       {/* Menu */}
       <ul className="nav flex-column">
         <li className="nav-item">
-          <NavLink to="/admin/dashboard" className="nav-link sidebar-link">
+          <NavLink to="/dashboard" className="nav-link sidebar-link">
             📊 Dashboard
           </NavLink>
         </li>
         <li className="nav-item">
-          <NavLink to="/admin/users" className="nav-link sidebar-link">
+          <NavLink to="/users" className="nav-link sidebar-link">
             👥 Users
           </NavLink>
         </li>
         <li className="nav-item">
-          <NavLink to="/admin/roles" className="nav-link sidebar-link">
+          <NavLink to="/roles" className="nav-link sidebar-link">
             🛡️ Roles
           </NavLink>
         </li>
