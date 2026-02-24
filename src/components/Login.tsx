@@ -1,8 +1,41 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import bgImage from "../../public/images/banner.jpg"; // Your background image
+import { defaultUser, type User } from "./interfaces/User.interfaces";
+import api from "../config";
 
-export function Login() {
+
+ function Login() {
+  const navigate = useNavigate();
+    const [user, setUser]=useState<User>(defaultUser);
+
+    useEffect(() =>{
+      document.title= "Login";
+    },[]);
+
+    const handelLogin =(e:React.FormEvent)=>{
+      e.preventDefault();
+      
+      api.post("login", user)
+      .then((res) => {
+        console.log("login Response:", res.data);
+        
+        // টোকেন সেভ করা
+        if (res.data.token) {
+           localStorage.setItem('token', res.data.token);
+            localStorage.setItem('user',JSON.stringify(res.data.user));
+        }
+
+        if (res.data.success) {
+          navigate("/dashboard");
+        }
+      })
+      .catch((err) => {
+        console.log(err.response);
+      });
+  }
+ 
+
   return (
     <div
       className="min-vh-100 d-flex justify-content-center align-items-center"
@@ -24,7 +57,7 @@ export function Login() {
             </p>
 
             {/* Form */}
-            <form>
+            <form onSubmit={handelLogin}>
               <div className="mb-3">
                 <label className="form-label">Email</label>
                 <input
@@ -32,6 +65,9 @@ export function Login() {
                   className="form-control"
                   placeholder="Enter your email"
                   required
+                  name="email"
+                  value={user.email ?? ""}
+                  onChange={(e) =>setUser({...user, email: e.target.value})}
                 />
               </div>
 
@@ -42,6 +78,9 @@ export function Login() {
                   className="form-control"
                   placeholder="Enter your password"
                   required
+                  name="password"
+                  value={user.password ?? ""}
+                  onChange={(e) =>setUser({...user, password: e.target.value})}
                 />
               </div>
 
@@ -60,3 +99,4 @@ export function Login() {
     </div>
   );
 }
+export default Login;

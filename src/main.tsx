@@ -14,7 +14,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Dashboard from './components/Dashboard.tsx'
 import { Register } from './components/Register.tsx'
 import NotFound from './components/Notfound.tsx'
-import { Login } from './components/Login.tsx'
+
 import TshirtPage from './components/pages/Tshirt.tsx';
 import ShirtCollection from './components/pages/Shirt.tsx';
 import PantCollection from './components/pages/Pant.tsx';
@@ -32,6 +32,7 @@ import ManageProducts from './components/pages/products/ManageProducts.tsx';
 import Reports from './components/pages/reports/Reports.tsx';
 import Settings from './components/pages/settings/Settings.tsx';
 import ManageCoupons from './components/pages/coupons/ManageCoupons.tsx';
+import Login from './components/Login.tsx';
 
 
 
