@@ -12,7 +12,6 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import App from './App.tsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Dashboard from './components/Dashboard.tsx'
-import { Register } from './components/Register.tsx'
 import NotFound from './components/Notfound.tsx'
 
 import TshirtPage from './components/pages/Tshirt.tsx';
@@ -33,6 +32,10 @@ import Reports from './components/pages/reports/Reports.tsx';
 import Settings from './components/pages/settings/Settings.tsx';
 import ManageCoupons from './components/pages/coupons/ManageCoupons.tsx';
 import Login from './components/Login.tsx';
+import Register from './components/Register.tsx';
+import ManagePosts from './components/pages/posts/ManagePosts.tsx';
+import DetailsPosts from './components/pages/posts/DetailsPosts.tsx';
+import CreatePosts from './components/pages/posts/CreatePosts.tsx';
 
 
 
@@ -59,6 +62,10 @@ const AppRoute = createBrowserRouter([
       {path:'/reports', element: <Reports/>},
       {path:'/settings', element: <Settings/>},
       {path:'/coupons', element: <ManageCoupons/>}, 
+      {path:'/posts', element: <ManagePosts/>}, 
+      {path:'/post/details/:id', element: <DetailsPosts/>}, 
+      {path:'/post/create', element: <CreatePosts/>}, 
+
     ]
   },
   {path:'/login', element:<Login />},

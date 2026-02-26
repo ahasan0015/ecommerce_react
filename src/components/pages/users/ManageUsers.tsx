@@ -1,38 +1,33 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
+import api from "../../../config";
 
 interface User {
   id: number;
   name: string;
   email: string;
-  role: string;
-  status: "Active" | "Inactive";
+  phone: string; // API থেকে আসা phone
+  role: string;  // API থেকে আসা role
 }
 
 const ManageUsers = () => {
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: 1,
-      name: "Admin User",
-      email: "admin@example.com",
-      role: "Admin",
-      status: "Active",
-    },
-    {
-      id: 2,
-      name: "John Doe",
-      email: "john@example.com",
-      role: "Customer",
-      status: "Active",
-    },
-    {
-      id: 3,
-      name: "Sarah Smith",
-      email: "sarah@example.com",
-      role: "Customer",
-      status: "Inactive",
-    },
-  ]);
+ // ৪. শুরুতে ইউজারের লিস্ট খালি [] থাকবে
+  const [users, setUsers] = useState<User[]>([]);
+  const getUsers = () => {
+  api.get("users")
+    .then((res) => {
+      // console.log(res.data.data);
+      setUsers(res.data.data);
+    })
+    .catch((err) => {
+      console.error(err);
+    })
+  }
+  // ৬. পেজটি ওপেন হওয়ার সাথে সাথে ডাটা লোড হবে
+  useEffect(() => {
+    document.title = "Manage Users";
+    getUsers();
+  }, []);
 
   const handleDelete = (id: number) => {
     if (!window.confirm("Are you sure?")) return;
@@ -62,7 +57,7 @@ const ManageUsers = () => {
                 <th>Name</th>
                 <th>Email</th>
                 <th>Role</th>
-                <th>Status</th>
+                {/* <th>Status</th> */}
                 <th className="text-center">Actions</th>
               </tr>
             </thead>
@@ -75,7 +70,7 @@ const ManageUsers = () => {
                   <td>{user.email}</td>
                   <td>{user.role}</td>
 
-                  <td>
+                  {/* <td>
                     <span
                       className={`badge ${
                         user.status === "Active"
@@ -85,7 +80,7 @@ const ManageUsers = () => {
                     >
                       {user.status}
                     </span>
-                  </td>
+                  </td> */}
 
                   <td className="text-center">
 
@@ -108,6 +103,9 @@ const ManageUsers = () => {
                 </tr>
               ))}
             </tbody>
+            <tfoot>
+              
+            </tfoot>
 
           </table>
 

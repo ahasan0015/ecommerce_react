@@ -1,7 +1,11 @@
-import React from "react";
-import { Link } from "react-router-dom";
 
-export function Register() {
+import { Link} from "react-router-dom";
+
+function Register() {
+  
+
+
+
   return (
     <div className="container-fluid py-4 d-flex justify-content-center align-items-center min-vh-100 bg-light">
       <div className="col-md-6">
@@ -32,6 +36,15 @@ export function Register() {
                 </div>
               </div>
 
+              <div className="mb-3">
+                <label className="form-label">Phone</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  placeholder="Create password"
+                  required
+                />
+              </div>
               <div className="mb-3">
                 <label className="form-label">Password</label>
                 <input
@@ -66,3 +79,4 @@ export function Register() {
     </div>
   );
 }
+export default Register;
