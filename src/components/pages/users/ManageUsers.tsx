@@ -1,137 +1,78 @@
 import { useEffect, useState } from "react";
-import { NavLink } from "react-router-dom";
+import ReactPaginate from "react-paginate";
 import api from "../../../config";
-import Swal from "sweetalert2";
 
 interface User {
   id: number;
   name: string;
   email: string;
-  phone: string; // API থেকে আসা phone
-  role: string;  // API থেকে আসা role
+  phone: string;
+  role: string;
 }
 
 const ManageUsers = () => {
- // ৪. শুরুতে ইউজারের লিস্ট খালি [] থাকবে
   const [users, setUsers] = useState<User[]>([]);
-  const getUsers = () => {
-  api.get("users")
-    .then((res) => {
-      // console.log(res.data.data);
-      setUsers(res.data.data);
-    })
-    .catch((err) => {
-      console.error(err);
-    })
-  }
-  // ৬. পেজটি ওপেন হওয়ার সাথে সাথে ডাটা লোড হবে
-  useEffect(() => {
-    document.title = "Manage Users";
-    getUsers();
-  }, []);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
 
-  const handleDelete = (id: number) => {
-  Swal.fire({
-    title: "Are you sure?",
-    text: "You won't be able to revert this!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#3085d6",
-    confirmButtonText: "Yes, delete it!",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      api
-        .delete(`/users/${id}`)
-        .then((res) => {
-          setUsers(users.filter((u) => u.id !== id));
-          Swal.fire("Deleted!", res.data.message, "success");
-        })
-        .catch((err) => {
-          Swal.fire("Error!", "Something went wrong", "error");
-        });
-    }
-  });
-};
+  const fetchUsers = (page = 1) => {
+    api.get(`/users?page=${page}`).then(res => {
+      setUsers(res.data.data.data);
+      setCurrentPage(res.data.data.current_page);
+      setLastPage(res.data.data.last_page);
+    });
+  };
+
+  useEffect(() => { fetchUsers(); }, []);
+
+  const handlePageClick = (data: { selected: number }) => {
+    fetchUsers(data.selected + 1);
+  };
 
   return (
-    <div className="container mt-4">
+    <div>
+      <table className="table table-hover table-bordered">
+        <thead>
+          <tr>
+            <th>S.L</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((user, index) => (
+            <tr key={user.id}>
+              <td>{(currentPage - 1) * 10 + index + 1}</td>
+              <td>{user.name}</td>
+              <td>{user.email}</td>
+              <td>{user.role}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
-      <div className="card shadow">
-
-        <div className="card-header d-flex justify-content-between align-items-center">
-          <h5 className="mb-0">Users Management</h5>
-
-          <NavLink to='/users/create' className="btn btn-primary">
-            + Add User
-          </NavLink>
-        </div>
-
-        <div className="card-body">
-
-          <table className="table table-hover table-bordered align-middle">
-
-            <thead className="table-light">
-              <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                {/* <th>Status</th> */}
-                <th className="text-center">Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.id}</td>
-                  <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>{user.role}</td>
-
-                  {/* <td>
-                    <span
-                      className={`badge ${
-                        user.status === "Active"
-                          ? "bg-success"
-                          : "bg-danger"
-                      }`}
-                    >
-                      {user.status}
-                    </span>
-                  </td> */}
-
-                  <td className="text-center">
-
-                    <NavLink to={`/users/${user.id}`} className="btn btn-secondary btn-sm me-2">
-                      View
-                    </NavLink>
-
-                    <NavLink to={`/users/edit/${user.id}`} className="btn btn-warning btn-sm me-2">
-                      Edit
-                    </NavLink>
-
-                    <button
-                      onClick={() => handleDelete(user.id)}
-                      className="btn btn-danger btn-sm"
-                    >
-                      Delete
-                    </button>
-
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              
-            </tfoot>
-
-          </table>
-
-        </div>
-
-      </div>
+      <nav>
+        <ReactPaginate
+          previousLabel={"<"}
+          nextLabel={">"}
+          breakLabel={"..."}
+          pageCount={lastPage}
+          marginPagesDisplayed={1}
+          pageRangeDisplayed={3}
+          onPageChange={handlePageClick}
+          containerClassName={"pagination justify-content-end"}
+          pageClassName={"page-item"}
+          pageLinkClassName={"page-link"}
+          previousClassName={"page-item"}
+          previousLinkClassName={"page-link"}
+          nextClassName={"page-item"}
+          nextLinkClassName={"page-link"}
+          breakClassName={"page-item"}
+          breakLinkClassName={"page-link"}
+          activeClassName={"active"}
+        />
+      </nav>
     </div>
   );
 };
