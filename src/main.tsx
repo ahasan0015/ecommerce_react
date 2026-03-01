@@ -20,10 +20,10 @@ import PantCollection from './components/pages/Pant.tsx';
 import StaticProfilePage from './components/Profile.tsx';
 import CartPage from './components/Cart.tsx';
 import ManageUsers from './components/pages/users/ManageUsers.tsx';
-import ManageRoles from './components/pages/roles/ManageRoles.tsx';
 import DetailsUser from './components/pages/users/DetailsUser.tsx';
-import CreateUserForm from './components/pages/users/CreateUser.tsx';
+import ManageRoles from './components/pages/roles/ManageRoles.tsx';
 import EditUser from './components/pages/users/EditUser.tsx';
+
 //categories
 import ManageCategories from './components/pages/categories/ManageCategories.tsx';
 import ManageOrders from './components/pages/orders/ManageOrders.tsx';
@@ -33,9 +33,7 @@ import Settings from './components/pages/settings/Settings.tsx';
 import ManageCoupons from './components/pages/coupons/ManageCoupons.tsx';
 import Login from './components/Login.tsx';
 import Register from './components/Register.tsx';
-import ManagePosts from './components/pages/posts/ManagePosts.tsx';
-import DetailsPosts from './components/pages/posts/DetailsPosts.tsx';
-import CreatePosts from './components/pages/posts/CreatePosts.tsx';
+import CreateUser from './components/pages/users/CreateUser.tsx';
 
 
 
@@ -52,9 +50,9 @@ const AppRoute = createBrowserRouter([
       {path:'/profile', element: <StaticProfilePage/>},
       {path:'/cart', element: <CartPage/>},
       {path:'/users', element: <ManageUsers/>},
-      {path:'/users/details', element: <DetailsUser/>},
-      {path:'/users/create', element: <CreateUserForm/>},
-      {path:'/edit/user', element: <EditUser/>},
+      {path:'/users/:id', element: <DetailsUser/>},
+      {path:'/users/create', element: <CreateUser/>},
+      {path:'/users/edit/:id', element: <EditUser/>},
       {path:'/roles', element: <ManageRoles/>},
       {path:'/categories', element: <ManageCategories/>},
       {path:'/orders', element: <ManageOrders/>},
@@ -62,9 +60,7 @@ const AppRoute = createBrowserRouter([
       {path:'/reports', element: <Reports/>},
       {path:'/settings', element: <Settings/>},
       {path:'/coupons', element: <ManageCoupons/>}, 
-      {path:'/posts', element: <ManagePosts/>}, 
-      {path:'/post/details/:id', element: <DetailsPosts/>}, 
-      {path:'/post/create', element: <CreatePosts/>}, 
+      
 
     ]
   },

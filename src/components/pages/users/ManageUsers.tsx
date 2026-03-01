@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import api from "../../../config";
+import Swal from "sweetalert2";
 
 interface User {
   id: number;
@@ -30,9 +31,28 @@ const ManageUsers = () => {
   }, []);
 
   const handleDelete = (id: number) => {
-    if (!window.confirm("Are you sure?")) return;
-    setUsers(users.filter((u) => u.id !== id));
-  };
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You won't be able to revert this!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Yes, delete it!",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      api
+        .delete(`/users/${id}`)
+        .then((res) => {
+          setUsers(users.filter((u) => u.id !== id));
+          Swal.fire("Deleted!", res.data.message, "success");
+        })
+        .catch((err) => {
+          Swal.fire("Error!", "Something went wrong", "error");
+        });
+    }
+  });
+};
 
   return (
     <div className="container mt-4">
@@ -84,11 +104,11 @@ const ManageUsers = () => {
 
                   <td className="text-center">
 
-                    <NavLink to='/users/details' className="btn btn-secondary btn-sm me-2">
+                    <NavLink to={`/users/${user.id}`} className="btn btn-secondary btn-sm me-2">
                       View
                     </NavLink>
 
-                    <NavLink to='/edit/user' className="btn btn-warning btn-sm me-2">
+                    <NavLink to={`/users/edit/${user.id}`} className="btn btn-warning btn-sm me-2">
                       Edit
                     </NavLink>
 

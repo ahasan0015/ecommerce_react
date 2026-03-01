@@ -6,12 +6,15 @@ export interface User {
   phone?: string;
   status?: "active" | "inactive" | string;  // optional enum
   role_name?: string;
+  role_id:number;
   password?:string;
 }
 export const defaultUser: User = {
   id: 0,
-  name: "",
-  email: "",
+  name: "Roxy",
+  email: "ahasanstu@gmail.com",
+  phone:"",
+  role_id:0,
   created_at: "",
   password: "",
   
