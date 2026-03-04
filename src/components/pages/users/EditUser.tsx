@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Form, Button } from "react-bootstrap";
 import api from "../../../config";
 import type { User } from "../../interfaces/User.interfaces";
-import type { Role } from "../../interfaces/role.interface";
+import type { Role } from "../../interfaces/Role.interface";
 import Swal from "sweetalert2";
 
 const EditUser = () => {
