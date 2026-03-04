@@ -1,7 +1,14 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import "./Navbar.css";
 
 export default function Navbar() {
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    localStorage.removeItem('bearer_token');
+    // localStorage.removeItem('user_name');
+    navigate('/login');
+    // window.location.href = '/login'
+  };
   return (
     <nav className="navbar navbar-expand-lg shadow-sm navbar-gradient">
       <div className="container-fluid">
@@ -39,9 +46,9 @@ export default function Navbar() {
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink className="dropdown-item text-danger" to="/admin/logout">
+                  <button className="dropdown-item text-danger" onClick={handleLogout}>
                     Logout
-                  </NavLink>
+                  </button>
                 </li>
               </ul>
             </li>

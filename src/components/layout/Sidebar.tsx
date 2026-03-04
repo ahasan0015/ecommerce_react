@@ -41,13 +41,18 @@ export default function Sidebar() {
           </NavLink>
         </li>
         <li className="nav-item">
-          <NavLink to="/products" className="nav-link sidebar-link">
-            🛍️ Products
+          <NavLink to="/brands" className="nav-link sidebar-link">
+            📂 Brands
           </NavLink>
         </li>
         <li className="nav-item">
           <NavLink to="/categories" className="nav-link sidebar-link">
             📂 Categories
+          </NavLink>
+        </li>
+        <li className="nav-item">
+          <NavLink to="/products" className="nav-link sidebar-link">
+            🛍️ Products
           </NavLink>
         </li>
         <li className="nav-item">

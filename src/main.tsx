@@ -34,6 +34,8 @@ import ManageCoupons from './components/pages/coupons/ManageCoupons.tsx';
 import Login from './components/Login.tsx';
 import Register from './components/Register.tsx';
 import CreateUser from './components/pages/users/CreateUser.tsx';
+import ManageBrands from './components/pages/brands/ManageBrands.tsx';
+import CreateBrand from './components/pages/brands/CreateBrands.tsx';
 
 
 
@@ -60,6 +62,10 @@ const AppRoute = createBrowserRouter([
       {path:'/reports', element: <Reports/>},
       {path:'/settings', element: <Settings/>},
       {path:'/coupons', element: <ManageCoupons/>}, 
+      //brands
+      {path:'/brands', element: <ManageBrands/>}, 
+      {path:'/brands/create', element: <CreateBrand/>}, 
+
       
 
     ]
