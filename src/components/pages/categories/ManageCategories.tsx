@@ -1,92 +1,117 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-interface Status { id: number; name: string; }
-
-interface Category {
-  id: number;
-  name: string;
-  parent_id: number | null;
-  status_id: number;
-  slug: string;
-}
+import api from "../../../config";
+import type { Category } from "../../interfaces/category.interface";
+import { NavLink } from "react-router-dom";
 
 const ManageCategories = () => {
-  // Static statuses
-  const statuses: Status[] = [
-    { id: 1, name: "Active" },
-    { id: 2, name: "Inactive" },
-  ];
+  const [categories, setCategories] = useState<Category[]>([]);
+  
 
-  // Static categories
-  const [categories, setCategories] = useState<Category[]>([
-    { id: 1, name: "Men", parent_id: null, status_id: 1, slug: "men" },
-    { id: 2, name: "Women", parent_id: null, status_id: 1, slug: "women" },
-    { id: 3, name: "Shirts", parent_id: 1, status_id: 1, slug: "shirts" },
-  ]);
-
-  const [showModal, setShowModal] = useState(false);
-  const [newCategory, setNewCategory] = useState<Omit<Category, "id">>({
-    name: "",
-    parent_id: null,
-    status_id: 1,
-    slug: "",
-  });
-
-  const handleDelete = (id: number) => {
-    if (!window.confirm("Are you sure?")) return;
-    setCategories(categories.filter(c => c.id !== id));
+  const fetchCategories = () => {
+    
+    api
+      .get(`/categories`)
+      .then((res) => {
+        if (res.data.success) {
+          // লারাভেল থেকে আসা ডাটা সেভ করা
+          setCategories(res.data.data);
+          console.log(res.data.data);
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching categories:", err);
+      })
+      
   };
 
-  const handleAddCategory = () => {
-    const id = categories.length ? Math.max(...categories.map(c => c.id)) + 1 : 1;
-    setCategories([...categories, { ...newCategory, id }]);
-    setShowModal(false);
-    setNewCategory({ name: "", parent_id: null, status_id: 1, slug: "" });
-  };
+  // ৩. ইউজ ইফেক্ট
+  useEffect(() => {
+    document.title = "Manage Categories";
+    fetchCategories();
+  }, []);
 
-  const getStatusName = (id: number) => statuses.find(s => s.id === id)?.name || "";
-  const getParentName = (parent_id: number | null) => {
-    if (!parent_id) return "-";
-    const parent = categories.find(c => c.id === parent_id);
-    return parent ? parent.name : "-";
+  const handleDelete = (id: number | undefined) => {
+    if (!id) return;
+
+    // ইউজার থেকে কনফার্মেশন নেওয়া
+    if (window.confirm("Are you sure you want to delete this category?")) {
+      api
+        .delete(`/categories/${id}`)
+        .then((res) => {
+          if (res.data.success) {
+            alert(res.data.message);
+            // ডিলিট হওয়ার পর টেবিল লিস্ট রিফ্রেশ করা
+            fetchCategories();
+          } else {
+            alert("Delete failed: " + res.data.message);
+          }
+        })
+        .catch((err) => {
+          console.error("Delete error:", err);
+          alert("Something went wrong while deleting.");
+        });
+    }
   };
 
   return (
-    <div className="container mt-4">
-      <div className="card shadow">
-        <div className="card-header d-flex justify-content-between align-items-center">
-          <h5>Categories Management</h5>
-          <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Add Category</button>
+    <div className="container mt-5">
+      {/* Header Section */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h3 className="fw-bold">Categories List</h3>
+          <p className="text-muted">
+            Manage your clothing store categories manually here.
+          </p>
         </div>
+        <NavLink to={'/categories/create'} className="btn btn-primary px-4 shadow-sm">
+          + Add Category
+        </NavLink>
+      </div>
 
-        <div className="card-body">
-          <table className="table table-hover table-bordered align-middle">
-            <thead className="table-light">
+      {/* Static Table Section */}
+      <div className="card shadow-sm border-0">
+        <div className="card-body p-0">
+          <table className="table table-hover align-middle mb-0">
+            <thead className="bg-light">
               <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Parent Category</th>
+                <th className="ps-4">ID</th>
+                <th>Category Name</th>
+                <th>Brand</th>
                 <th>Slug</th>
-                <th>Status</th>
+                <th className="text-center">Status</th>
                 <th className="text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {categories.map(c => (
-                <tr key={c.id}>
-                  <td>{c.id}</td>
-                  <td>{c.name}</td>
-                  <td>{getParentName(c.parent_id)}</td>
-                  <td>{c.slug}</td>
+              {/* Static Row 1 */}
+              {categories.map((item, index) => (
+                <tr key={item.id || index}>
+                  <td className="ps-4">{index + 1}</td>
                   <td>
-                    <span className={`badge ${c.status_id === 1 ? "bg-success" : "bg-danger"}`}>
-                      {getStatusName(c.status_id)}
+                    <span className="fw-bold">{item.name}</span>
+                  </td>
+                  <td>
+                    <span className="badge bg-info text-dark bg-opacity-10">
+                      {item.brand_name}
+                    </span>
+                  </td>
+                  <td>
+                    <code>{item.slug}</code>
+                  </td>
+                  <td className="text-center">
+                    <span
+                      className={`badge rounded-pill ${item.status_id === 1 ? "bg-success" : "bg-danger"}`}>
+                      {item.status_name}
                     </span>
                   </td>
                   <td className="text-center">
-                    <button className="btn btn-secondary btn-sm me-2">View</button>
-                    <button className="btn btn-warning btn-sm me-2">Edit</button>
-                    <button className="btn btn-danger btn-sm" onClick={() => handleDelete(c.id)}>Delete</button>
+                    <button className="btn btn-sm btn-outline-warning me-2">
+                      Edit
+                    </button>
+                    <button onClick={() => handleDelete(item.id)} className="btn btn-sm btn-outline-danger">
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -94,68 +119,6 @@ const ManageCategories = () => {
           </table>
         </div>
       </div>
-
-      {/* Modal (Plain Bootstrap) */}
-      {showModal && (
-        <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Add New Category</h5>
-                <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
-              </div>
-              <div className="modal-body">
-                <div className="mb-3">
-                  <label className="form-label">Name</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={newCategory.name}
-                    onChange={e => setNewCategory({ ...newCategory, name: e.target.value })}
-                  />
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Slug</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={newCategory.slug}
-                    onChange={e => setNewCategory({ ...newCategory, slug: e.target.value })}
-                  />
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Parent Category</label>
-                  <select
-                    className="form-select"
-                    value={newCategory.parent_id || ""}
-                    onChange={e => setNewCategory({ ...newCategory, parent_id: e.target.value ? parseInt(e.target.value) : null })}
-                  >
-                    <option value="">None</option>
-                    {categories.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Status</label>
-                  <select
-                    className="form-select"
-                    value={newCategory.status_id}
-                    onChange={e => setNewCategory({ ...newCategory, status_id: parseInt(e.target.value) })}
-                  >
-                    {statuses.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                <button className="btn btn-primary" onClick={handleAddCategory}>Add Category</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 };
