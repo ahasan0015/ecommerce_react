@@ -77,7 +77,7 @@ const ManageCategories = () => {
               <tr>
                 <th className="ps-4">ID</th>
                 <th>Category Name</th>
-                <th>Brand</th>
+                {/* <th>Brand</th> */}
                 <th>Slug</th>
                 <th className="text-center">Status</th>
                 <th className="text-center">Actions</th>
@@ -91,11 +91,11 @@ const ManageCategories = () => {
                   <td>
                     <span className="fw-bold">{item.name}</span>
                   </td>
-                  <td>
+                  {/* <td>
                     <span className="badge bg-info text-dark bg-opacity-10">
                       {item.brand_name}
                     </span>
-                  </td>
+                  </td> */}
                   <td>
                     <code>{item.slug}</code>
                   </td>
@@ -106,9 +106,9 @@ const ManageCategories = () => {
                     </span>
                   </td>
                   <td className="text-center">
-                    <button className="btn btn-sm btn-outline-warning me-2">
+                    <NavLink to="/categories/edit/:id" className="btn btn-sm btn-outline-warning me-2">
                       Edit
-                    </button>
+                    </NavLink>
                     <button onClick={() => handleDelete(item.id)} className="btn btn-sm btn-outline-danger">
                       Delete
                     </button>

@@ -39,6 +39,7 @@ import ManageBrands from './components/pages/brands/ManageBrands.tsx';
 import CreateBrand from './components/pages/brands/CreateBrands.tsx';
 import EditBrand from './components/pages/brands/EditBrand.tsx';
 import CreateCategory from './components/pages/categories/CreateCategory.tsx';
+import EditCategory from './components/pages/categories/EditCategories.tsx';
 
 
 
@@ -62,6 +63,7 @@ const AppRoute = createBrowserRouter([
       {path:'/roles', element: <ManageRoles/>},
       {path:'/categories', element: <ManageCategories/>},
       {path:'/categories/create', element: <CreateCategory/>},
+      {path:'/categories/edit/:id', element: <EditCategory/>},
       {path:'/orders', element: <ManageOrders/>},
       {path:'/products', element: <ManageProducts/>},
       {path:'/reports', element: <Reports/>},
