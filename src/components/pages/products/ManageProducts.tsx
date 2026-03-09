@@ -1,100 +1,193 @@
-import { useState } from "react";
-
-interface Status { id: number; name: string; }
-interface Category { id: number; name: string; }
-interface Brand { id: number; name: string; }
+import { useEffect, useState } from "react";
+import api from "../../../config"; // আপনার এপিআই কনফিগ
+import { NavLink } from "react-router-dom";
 
 interface Product {
   id: number;
   name: string;
   slug: string;
+  base_price: number;
   category_id: number;
   brand_id: number;
-  base_price: number;
   status_id: number;
-  created_at: string;
+  category_name?: string;
+  brand_name?: string;
+  status_name?: string;
+  category?: { name: string };
+  brand?: { name: string };
+  status?: { name: string };
 }
 
 const ManageProducts = () => {
-  // Static data for statuses, categories, brands
-  const statuses: Status[] = [
-    { id: 1, name: "Active" },
-    { id: 2, name: "Inactive" },
-  ];
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  
+  // পাজিনেশন স্টেট
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [lastPage, setLastPage] = useState<number>(1);
+  const [total, setTotal] = useState<number>(0);
 
-  const categories: Category[] = [
-    { id: 1, name: "Men" },
-    { id: 2, name: "Women" },
-    { id: 3, name: "Shirts" },
-  ];
+  // ডাটা ফেচ করার ফাংশন (page নাম্বার সহ)
+  const fetchProducts = (page: number = 1) => {
+    setLoading(true);
+    api
+      .get(`/products?page=${page}`) // লারাভেল অটোমেটিক ?page= বুঝতে পারে
+      .then((res) => {
+        if (res.data.success) {
+          // লারাভেল paginate(10) ব্যবহার করলে ডাটা res.data.data এর ভেতরে থাকে
+          const responseData = res.data.data;
+          setProducts(responseData.data);
+          setCurrentPage(responseData.current_page);
+          setLastPage(responseData.last_page);
+          setTotal(responseData.total);
+        }
+        
+      })
+      .catch((err) => {
+        console.error("Error fetching products:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
 
-  const brands: Brand[] = [
-    { id: 1, name: "Brand A" },
-    { id: 2, name: "Brand B" },
-  ];
+  useEffect(() => {
+    document.title = "Manage Products";
+    fetchProducts(currentPage);
+  }, [currentPage]); // currentPage পরিবর্তন হলে অটোমেটিক কল হবে
 
-  // Static products
-  const [products, setProducts] = useState<Product[]>([
-    { id: 1, name: "Men Shirt Blue", slug: "men-shirt-blue", category_id: 3, brand_id: 1, base_price: 25.5, status_id: 1, created_at: "2026-02-04" },
-    { id: 2, name: "Women Dress Red", slug: "women-dress-red", category_id: 2, brand_id: 2, base_price: 45.0, status_id: 1, created_at: "2026-02-03" },
-    { id: 3, name: "Men T-Shirt", slug: "men-tshirt", category_id: 1, brand_id: 1, base_price: 15.0, status_id: 2, created_at: "2026-02-02" },
-  ]);
+  const handleDelete = (id: number | undefined) => {
+    if (!id) return;
 
-  const getCategoryName = (id: number) => categories.find(c => c.id === id)?.name || "-";
-  const getBrandName = (id: number) => brands.find(b => b.id === id)?.name || "-";
-  const getStatusName = (id: number) => statuses.find(s => s.id === id)?.name || "";
-  const getStatusBadgeClass = (id: number) => (id === 1 ? "bg-success" : "bg-danger");
-
-  const handleDelete = (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this product?")) return;
-    setProducts(products.filter(p => p.id !== id));
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      api
+        .delete(`/products/${id}`)
+        .then((res) => {
+          if (res.data.success || res.status === 200) {
+            alert(res.data.message || "Product deleted successfully");
+            fetchProducts(currentPage); // বর্তমান পেজটি রিফ্রেশ করা
+          }
+        })
+        .catch((err) => {
+          console.error("Delete error:", err);
+          alert("Something went wrong while deleting.");
+        });
+    }
   };
 
   return (
-    <div className="container mt-4">
-      <div className="card shadow">
-        <div className="card-header d-flex justify-content-between align-items-center">
-          <h5>Products Management</h5>
-          <button className="btn btn-primary">+ Add Product</button>
+    <div className="container mt-5">
+      {/* Header Section */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h3 className="fw-bold">Products List</h3>
+          <p className="text-muted">Manage your clothing store products here.</p>
+        </div>
+        <NavLink to={"/products/create"} className="btn btn-primary px-4 shadow-sm">
+          + Add Product
+        </NavLink>
+      </div>
+
+      {/* Table Section */}
+      <div className="card shadow-sm border-0 mb-4">
+        <div className="card-body p-0">
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead className="bg-light">
+                <tr>
+                  <th className="ps-4">ID</th>
+                  <th>Product Name</th>
+                  <th>Category</th>
+                  <th>Brand</th>
+                  <th>Price</th>
+                  <th>image</th>
+                  <th className="text-center">Status</th>
+                  <th className="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} className="text-center py-4">Loading products...</td>
+                  </tr>
+                ) : products.length > 0 ? (
+                  products.map((item, index) => (
+                    <tr key={item.id}>
+                      <td className="ps-4">{(currentPage - 1) * 10 + (index + 1)}</td>
+                      <td>
+                        <span className="fw-bold d-block">{item.name}</span>
+                        <small className="text-muted">{item.slug}</small>
+                      </td>
+                      <td>
+                        <span className="badge bg-info text-dark bg-opacity-10">
+                          {item.category_name || item.category?.name || "N/A"}
+                        </span>
+                      </td>
+                      <td>{item.brand_name || item.brand?.name || "N/A"}</td>
+                      <td>{Number(item.base_price).toFixed(2)}</td>
+                      {/* <td>{item.}</td> */}
+                      <td className="text-center">
+                        <span className={`badge rounded-pill ${item.status_id === 1 ? "bg-success" : "bg-danger"}`}>
+                          {item.status_name || item.status?.name || "N/A"}
+                        </span>
+                      </td>
+                      <td className="text-center">
+                        <NavLink to={`/products/edit/${item.id}`} className="btn btn-sm btn-outline-warning me-2">
+                          Edit
+                        </NavLink>
+                        <button onClick={() => handleDelete(item.id)} className="btn btn-sm btn-outline-danger">
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={7} className="text-center py-4">No products found.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <div className="card-body">
-          <table className="table table-hover table-bordered align-middle">
-            <thead className="table-light">
-              <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Slug</th>
-                <th>Category</th>
-                <th>Brand</th>
-                <th>Price ($)</th>
-                <th>Status</th>
-                <th className="text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map(p => (
-                <tr key={p.id}>
-                  <td>{p.id}</td>
-                  <td>{p.name}</td>
-                  <td>{p.slug}</td>
-                  <td>{getCategoryName(p.category_id)}</td>
-                  <td>{getBrandName(p.brand_id)}</td>
-                  <td>{p.base_price.toFixed(2)}</td>
-                  <td>
-                    <span className={`badge ${getStatusBadgeClass(p.status_id)}`}>
-                      {getStatusName(p.status_id)}
-                    </span>
-                  </td>
-                  <td className="text-center">
-                    <button className="btn btn-secondary btn-sm me-2">View</button>
-                    <button className="btn btn-warning btn-sm me-2">Edit</button>
-                    <button className="btn btn-danger btn-sm" onClick={() => handleDelete(p.id)}>Delete</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Bootstrap Pagination UI */}
+        <div className="card-footer bg-white border-0 py-3">
+          <div className="d-flex justify-content-between align-items-center">
+            <div className="text-muted small">
+              Showing page <strong>{currentPage}</strong> of <strong>{lastPage}</strong> (Total <strong>{total}</strong> products)
+            </div>
+            
+            <nav aria-label="Page navigation">
+              <ul className="pagination pagination-sm mb-0">
+                {/* Previous Button */}
+                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                  <button className="page-link" onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>
+                    Previous
+                  </button>
+                </li>
+
+                {/* Page Numbers */}
+                {[...Array(lastPage)].map((_, index) => {
+                  const pageNum = index + 1;
+                  return (
+                    <li key={pageNum} className={`page-item ${currentPage === pageNum ? 'active' : ''}`}>
+                      <button className="page-link" onClick={() => setCurrentPage(pageNum)}>
+                        {pageNum}
+                      </button>
+                    </li>
+                  );
+                })}
+
+                {/* Next Button */}
+                <li className={`page-item ${currentPage === lastPage ? 'disabled' : ''}`}>
+                  <button className="page-link" onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === lastPage}>
+                    Next
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
         </div>
       </div>
     </div>
