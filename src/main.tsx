@@ -43,6 +43,7 @@ import EditCategory from './components/pages/categories/EditCategories.tsx';
 import ProductCreate from './components/pages/products/CreateProducts.tsx';
 import ProductDetails from './components/pages/products/DetailsProduct.tsx';
 import EditProduct from './components/pages/products/EditProducts.tsx';
+import ManageSize from './components/pages/sizes/ManageSize.tsx';
 
 
 
@@ -79,6 +80,9 @@ const AppRoute = createBrowserRouter([
       {path:'/brands', element: <ManageBrands/>}, 
       {path:'/brands/create', element: <CreateBrand/>}, 
       {path:'/brands/edit/:id', element: <EditBrand/>}, 
+      //sizes
+      {path:'/sizes', element: <ManageSize/>}, 
+
 
       
 

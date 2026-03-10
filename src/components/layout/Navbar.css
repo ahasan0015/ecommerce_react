@@ -1,40 +1,62 @@
-/* Gradient background */
+/* Navbar gradient + shadow */
 .navbar-gradient {
-  background: linear-gradient(90deg, #ff6b6b, #f94d6a);
-}
-
-/* Hover dropdown for desktop */
-@media (min-width: 992px) {
-  .navbar .dropdown:hover .dropdown-menu {
-    display: block;
-    margin-top: 0;
-    transition: all 0.3s ease;
-  }
-
-  .navbar .dropdown-menu {
-    transition: all 0.3s ease;
-  }
-}
-
-/* Dropdown item hover effect */
-.dropdown-item:hover {
-  background-color: #ff6b6b;
-  color: white !important;
+  background: linear-gradient(90deg, #ff416c, #ff4b2b);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
 /* Nav-link hover */
-.navbar .nav-link:hover {
-  color: #ffe3e3 !important;
-  transition: 0.3s;
+.navbar .nav-link {
+  color: #fff !important;
+  transition: all 0.3s ease;
 }
-.navbar-gradient {
-  background: linear-gradient(90deg, #ff416c, #ff4b2b);
-}
-
 .navbar .nav-link:hover {
   opacity: 0.85;
 }
 
+/* Dropdown menu */
 .dropdown-menu {
   border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  min-width: 180px;
+  padding: 0.25rem 0; /* tighter spacing */
+}
+
+/* Remove default list spacing */
+.dropdown-menu li {
+  margin: 0;
+  padding: 0;
+  line-height: 1.4;
+}
+
+/* Dropdown items hover */
+.dropdown-item {
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease;
+}
+.dropdown-item:hover {
+  background-color: #ff6b6b;
+  color: #fff !important;
+}
+
+/* Logout button style (matches dropdown-item perfectly) */
+.dropdown-item-logout {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-align: left;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  line-height: 1.4; /* match other dropdown items */
+  margin: 0; /* remove extra spacing */
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item-logout:hover {
+  background-color: #f87171; /* subtle red hover */
+  color: #fff;
+  transform: translateX(2px); /* subtle slide */
 }

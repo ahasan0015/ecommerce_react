@@ -46,7 +46,7 @@ export default function Navbar() {
                   </NavLink>
                 </li>
                 <li>
-                  <button className="dropdown-item text-danger" onClick={handleLogout}>
+                  <button className="dropdown-item-logout text-danger" onClick={handleLogout}>
                     Logout
                   </button>
                 </li>
