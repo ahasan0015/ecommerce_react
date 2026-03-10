@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../../config";
-
-// ড্রপডাউন ডাটার জন্য টাইপ ডিফাইন করা (TS Error হ্যান্ডেল করতে)
+interface ValidationErrors {
+  [key: string]: string[]; 
+}
 interface DropdownItem {
   id: number;
   name: string;
@@ -11,7 +12,7 @@ interface DropdownItem {
 const ProductCreate = () => {
   const navigate = useNavigate();
 
-  // ১. ইনপুট ফিল্ডের জন্য আলাদা আলাদা স্টেট (Beginner Style)
+  // ১. ইনপুট স্টেট
   const [name, setName] = useState<string>("");
   const [categoryId, setCategoryId] = useState<string>("");
   const [brandId, setBrandId] = useState<string>("");
@@ -20,51 +21,32 @@ const ProductCreate = () => {
   const [description, setDescription] = useState<string>("");
   const [image, setImage] = useState<File | null>(null);
 
-  // ২. ড্রপডাউন ডাটা স্টোর করার স্টেট (ইন্টারফেস সহ)
+  // ২. ডাটা এবং এরর স্টেট
   const [categories, setCategories] = useState<DropdownItem[]>([]);
   const [brands, setBrands] = useState<DropdownItem[]>([]);
   const [statuses, setStatuses] = useState<DropdownItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [errors, setErrors] = useState<ValidationErrors>({});// ব্যাকএন্ড থেকে আসা এরর স্টোর করবে
 
-  // ৩. পেজ লোড হওয়ার সময় ড্রপডাউন ডাটা নিয়ে আসা
-  //   useEffect(() => {
-  //     const loadDropdowns = async () => {
-  //       try {
-  //         const [catRes, brandRes, statusRes] = await Promise.all([
-  //           api.get("/categories"),
-  //           api.get("/brands"),
-  //           api.get("/product-statuses"),
-  //         ]);
-
-  //         // লারাভেল রেসপন্স অনুযায়ী ডাটা সেট করা
-  //         setCategories(catRes.data.data || catRes.data);
-  //         setBrands(brandRes.data.data || brandRes.data);
-  //         setStatuses(statusRes.data.data || statusRes.data);
-  //       } catch (err) {
-  //         console.error("Dropdown load failed:", err);
-  //       }
-  //     };
-  //     loadDropdowns();
-  //   }, []);
-
+  // ৩. পেজ লোড হওয়ার সময় ড্রপডাউন ডাটা আনা (.then ব্যবহার করে)
   useEffect(() => {
-    // ১. ক্যাটাগরি লোড
+    // ক্যাটাগরি লোড
     api
       .get("/categories")
-      .then((res) => {
-        setCategories(res.data.data || res.data);
-      })
+      .then((res) => setCategories(res.data.data || res.data))
       .catch((err) => console.error("Category Load Error", err));
 
-    // ২. ব্র্যান্ড লোড
-    api.get("/brands").then((res) => {
-      setBrands(res.data.data || res.data);
-    });
+    // ব্র্যান্ড লোড
+    api
+      .get("/brands")
+      .then((res) => setBrands(res.data.data || res.data))
+      .catch((err) => console.error("Brand Load Error", err));
 
-    // ৩. স্ট্যাটাস লোড
-    api.get("/product-statuses").then((res) => {
-      setStatuses(res.data.data || res.data);
-    });
+    // স্ট্যাটাস লোড
+    api
+      .get("/product-statuses")
+      .then((res) => setStatuses(res.data.data || res.data))
+      .catch((err) => console.error("Status Load Error", err));
   }, []);
 
   // ৪. ফাইল হ্যান্ডলার
@@ -74,10 +56,11 @@ const ProductCreate = () => {
     }
   };
 
-  // ৫. সাবমিট ফাংশন
+  // ৫. সাবমিট ফাংশন (.then এবং .catch চেইন)
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrors({}); // নতুন করে সাবমিট করার আগে আগের এরর মুছে ফেলা
 
     const formData = new FormData();
     formData.append("name", name);
@@ -91,49 +74,58 @@ const ProductCreate = () => {
       formData.append("image", image);
     }
 
+    // API POST Request
     api
       .post("/products", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then((res) => {
         alert(res.data.message || "Product created successfully!");
+        setLoading(false);
         navigate("/products");
       })
       .catch((err) => {
-        console.error("Submission Error:", err.response?.data);
-        alert("Something went wrong. Check inputs.");
-      })
-      .finally(() => setLoading(false));
+        setLoading(false);
+        if (err.response && err.response.status === 422) {
+          // লারাভেল থেকে আসা স্পেসিফিক এররগুলো স্টেটে সেট করা
+          console.log("Validation Errors:", err.response.data.errors);
+          setErrors(err.response.data.errors);
+        } else {
+          console.error("Submission Error:", err.response?.data);
+          alert("Something went wrong. Check console.");
+        }
+      });
   };
 
   return (
-    <div className="container mt-4">
+    <div className="container mt-4 mb-5">
       <div className="card p-4 shadow-sm border-0">
-        <h3 className="mb-4 text-primary">Create New Product</h3>
+        <h3 className="mb-4 text-primary fw-bold">Create New Product</h3>
 
         <form onSubmit={handleSubmit}>
           {/* Product Name */}
           <div className="mb-3">
-            <label className="fw-bold">Product Name</label>
+            <label className="fw-bold mb-1">Product Name</label>
             <input
               type="text"
-              className="form-control"
+              className={`form-control ${errors.name ? "is-invalid" : ""}`}
               placeholder="Enter product name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              required
             />
+            {errors.name && (
+              <div className="invalid-feedback">{errors.name[0]}</div>
+            )}
           </div>
 
           <div className="row">
-            {/* Category Dropdown */}
+            {/* Category */}
             <div className="col-md-4 mb-3">
-              <label className="fw-bold">Category</label>
+              <label className="fw-bold mb-1">Category</label>
               <select
-                className="form-select"
+                className={`form-select ${errors.category_id ? "is-invalid" : ""}`}
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                required
               >
                 <option value="">Select Category</option>
                 {categories.map((cat) => (
@@ -142,16 +134,18 @@ const ProductCreate = () => {
                   </option>
                 ))}
               </select>
+              {errors.category_id && (
+                <div className="invalid-feedback">{errors.category_id[0]}</div>
+              )}
             </div>
 
-            {/* Brand Dropdown */}
+            {/* Brand */}
             <div className="col-md-4 mb-3">
-              <label className="fw-bold">Brand</label>
+              <label className="fw-bold mb-1">Brand</label>
               <select
-                className="form-select"
+                className={`form-select ${errors.brand_id ? "is-invalid" : ""}`}
                 value={brandId}
                 onChange={(e) => setBrandId(e.target.value)}
-                required
               >
                 <option value="">Select Brand</option>
                 {brands.map((brand) => (
@@ -160,16 +154,18 @@ const ProductCreate = () => {
                   </option>
                 ))}
               </select>
+              {errors.brand_id && (
+                <div className="invalid-feedback">{errors.brand_id[0]}</div>
+              )}
             </div>
 
-            {/* Status Dropdown */}
+            {/* Status */}
             <div className="col-md-4 mb-3">
-              <label className="fw-bold">Status</label>
+              <label className="fw-bold mb-1">Status</label>
               <select
-                className="form-select"
+                className={`form-select ${errors.status_id ? "is-invalid" : ""}`}
                 value={statusId}
                 onChange={(e) => setStatusId(e.target.value)}
-                required
               >
                 <option value="">Select Status</option>
                 {statuses.map((st) => (
@@ -178,52 +174,76 @@ const ProductCreate = () => {
                   </option>
                 ))}
               </select>
+              {errors.status_id && (
+                <div className="invalid-feedback">{errors.status_id[0]}</div>
+              )}
             </div>
           </div>
 
           {/* Base Price */}
           <div className="mb-3">
-            <label className="fw-bold">Base Price</label>
+            <label className="fw-bold mb-1">Base Price</label>
             <input
               type="number"
-              className="form-control"
+              className={`form-control ${errors.base_price ? "is-invalid" : ""}`}
               placeholder="0.00"
               value={basePrice}
               onChange={(e) => setBasePrice(e.target.value)}
-              required
             />
+            {errors.base_price && (
+              <div className="invalid-feedback">{errors.base_price[0]}</div>
+            )}
           </div>
 
           {/* Description */}
           <div className="mb-3">
-            <label className="fw-bold">Description</label>
+            <label className="fw-bold mb-1">Description</label>
             <textarea
-              className="form-control"
+              className={`form-control ${errors.description ? "is-invalid" : ""}`}
               rows={3}
               placeholder="Product details..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             ></textarea>
+            {errors.description && (
+              <div className="invalid-feedback">{errors.description[0]}</div>
+            )}
           </div>
 
           {/* Image */}
           <div className="mb-4">
-            <label className="fw-bold">Product Image</label>
+            <label className="fw-bold mb-1">Product Image</label>
             <input
               type="file"
-              className="form-control"
+              className={`form-control ${errors.image ? "is-invalid" : ""}`}
               onChange={handleFileChange}
               accept="image/*"
             />
+            {errors.image && (
+              <div className="invalid-feedback">{errors.image[0]}</div>
+            )}
           </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary w-100 py-2 fw-bold"
-            disabled={loading}
-          >
-            {loading ? "Saving Product..." : "Save Product"}
-          </button>
+          <div className="d-flex gap-2">
+            <button
+              type="submit"
+              className="btn btn-primary flex-grow-1 py-2 fw-bold"
+              disabled={loading}
+            >
+              {loading && (
+                <span className="spinner-border spinner-border-sm me-2"></span>
+              )}
+              {loading ? "Saving..." : "Save Product"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="btn btn-outline-dark px-4"
+            >
+              Go Back
+            </button>
+          </div>
         </form>
       </div>
     </div>

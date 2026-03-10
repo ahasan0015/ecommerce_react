@@ -41,6 +41,8 @@ import EditBrand from './components/pages/brands/EditBrand.tsx';
 import CreateCategory from './components/pages/categories/CreateCategory.tsx';
 import EditCategory from './components/pages/categories/EditCategories.tsx';
 import ProductCreate from './components/pages/products/CreateProducts.tsx';
+import ProductDetails from './components/pages/products/DetailsProduct.tsx';
+import EditProduct from './components/pages/products/EditProducts.tsx';
 
 
 
@@ -68,6 +70,8 @@ const AppRoute = createBrowserRouter([
       {path:'/orders', element: <ManageOrders/>},
       {path:'/products', element: <ManageProducts/>},
       {path:'/products/create', element: <ProductCreate/>},
+      {path:'/products/:id', element: <ProductDetails/>},
+      {path:'/products/edit/:id', element: <EditProduct/>},
       {path:'/reports', element: <Reports/>},
       {path:'/settings', element: <Settings/>},
       {path:'/coupons', element: <ManageCoupons/>}, 

@@ -132,6 +132,9 @@ const ManageProducts = () => {
                         </span>
                       </td>
                       <td className="text-center">
+                         <NavLink to={`/products/${item.id}`} className="btn btn-sm btn-outline-primary me-2">
+                          Details
+                        </NavLink>
                         <NavLink to={`/products/edit/${item.id}`} className="btn btn-sm btn-outline-warning me-2">
                           Edit
                         </NavLink>
