@@ -35,11 +35,11 @@ export default function Sidebar() {
             👥 Users
           </NavLink>
         </li>
-        <li className="nav-item">
+        {/* <li className="nav-item">
           <NavLink to="/roles" className="nav-link sidebar-link">
             🛡️ Roles
           </NavLink>
-        </li>
+        </li> */}
         <li className="nav-item">
           <NavLink to="/brands" className="nav-link sidebar-link">
             📂 Brands
@@ -59,7 +59,7 @@ export default function Sidebar() {
         {/* Products Flyout Dropdown */}
         <li className="nav-item sidebar-flyout">
           <NavLink
-            to="#"
+            to="/products"
             className="nav-link text-white d-flex justify-content-between align-items-center"
           >
             🛍️ Products
@@ -74,12 +74,12 @@ export default function Sidebar() {
               </NavLink>
             </li>
             <li>
-              <NavLink to="/products/colors" className="flyout-item">
+              <NavLink to="/colors" className="flyout-item">
                 Colors
               </NavLink>
             </li>
             <li>
-              <NavLink to="/products/variants" className="flyout-item">
+              <NavLink to="/variants/create" className="flyout-item">
                 Product Variants
               </NavLink>
             </li>

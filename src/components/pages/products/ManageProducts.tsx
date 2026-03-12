@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import api from "../../../config"; // আপনার এপিআই কনফিগ
 import { NavLink } from "react-router-dom";
 
-
 interface Product {
   id: number;
   name: string;
@@ -22,7 +21,7 @@ interface Product {
 const ManageProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  
+
   // পাজিনেশন স্টেট
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [lastPage, setLastPage] = useState<number>(1);
@@ -42,7 +41,6 @@ const ManageProducts = () => {
           setLastPage(responseData.last_page);
           setTotal(responseData.total);
         }
-        
       })
       .catch((err) => {
         console.error("Error fetching products:", err);
@@ -82,9 +80,14 @@ const ManageProducts = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h3 className="fw-bold">Products List</h3>
-          <p className="text-muted">Manage your clothing store products here.</p>
+          <p className="text-muted">
+            Manage your clothing store products here.
+          </p>
         </div>
-        <NavLink to={"/products/create"} className="btn btn-primary px-4 shadow-sm">
+        <NavLink
+          to={"/products/create"}
+          className="btn btn-primary px-4 shadow-sm"
+        >
           + Add Product
         </NavLink>
       </div>
@@ -109,12 +112,16 @@ const ManageProducts = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-4">Loading products...</td>
+                    <td colSpan={7} className="text-center py-4">
+                      Loading products...
+                    </td>
                   </tr>
                 ) : products.length > 0 ? (
                   products.map((item, index) => (
                     <tr key={item.id}>
-                      <td className="ps-4">{(currentPage - 1) * 10 + (index + 1)}</td>
+                      <td className="ps-4">
+                        {(currentPage - 1) * 10 + (index + 1)}
+                      </td>
                       <td>
                         <span className="fw-bold d-block">{item.name}</span>
                         <small className="text-muted">{item.slug}</small>
@@ -128,18 +135,35 @@ const ManageProducts = () => {
                       <td>{Number(item.base_price).toFixed(2)}</td>
                       {/* <td>{item.}</td> */}
                       <td className="text-center">
-                        <span className={`badge rounded-pill ${item.status_id === 1 ? "bg-success" : "bg-danger"}`}>
+                        <span
+                          className={`badge rounded-pill ${item.status_id === 1 ? "bg-success" : "bg-danger"}`}
+                        >
                           {item.status_name || item.status?.name || "N/A"}
                         </span>
                       </td>
                       <td className="text-center">
-                         <NavLink to={`/products/${item.id}`} className="btn btn-sm btn-outline-primary me-2">
+                        <NavLink
+                          to={`/variants/products/${item.id}`}
+                          className="btn btn-sm btn-outline-info me-2"
+                        >
+                          <i className="bi bi-layers"></i> Variants
+                        </NavLink>
+                        <NavLink
+                          to={`/products/${item.id}`}
+                          className="btn btn-sm btn-outline-primary me-2"
+                        >
                           Details
                         </NavLink>
-                        <NavLink to={`/products/edit/${item.id}`} className="btn btn-sm btn-outline-warning me-2">
+                        <NavLink
+                          to={`/products/edit/${item.id}`}
+                          className="btn btn-sm btn-outline-warning me-2"
+                        >
                           Edit
                         </NavLink>
-                        <button onClick={() => handleDelete(item.id)} className="btn btn-sm btn-outline-danger">
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="btn btn-sm btn-outline-danger"
+                        >
                           Delete
                         </button>
                       </td>
@@ -147,7 +171,9 @@ const ManageProducts = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="text-center py-4">No products found.</td>
+                    <td colSpan={7} className="text-center py-4">
+                      No products found.
+                    </td>
                   </tr>
                 )}
               </tbody>
@@ -159,14 +185,22 @@ const ManageProducts = () => {
         <div className="card-footer bg-white border-0 py-3">
           <div className="d-flex justify-content-between align-items-center">
             <div className="text-muted small">
-              Showing page <strong>{currentPage}</strong> of <strong>{lastPage}</strong> (Total <strong>{total}</strong> products)
+              Showing page <strong>{currentPage}</strong> of{" "}
+              <strong>{lastPage}</strong> (Total <strong>{total}</strong>{" "}
+              products)
             </div>
-            
+
             <nav aria-label="Page navigation">
               <ul className="pagination pagination-sm mb-0">
                 {/* Previous Button */}
-                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                  <button className="page-link" onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>
+                <li
+                  className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
+                >
+                  <button
+                    className="page-link"
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
                     Previous
                   </button>
                 </li>
@@ -175,8 +209,14 @@ const ManageProducts = () => {
                 {[...Array(lastPage)].map((_, index) => {
                   const pageNum = index + 1;
                   return (
-                    <li key={pageNum} className={`page-item ${currentPage === pageNum ? 'active' : ''}`}>
-                      <button className="page-link" onClick={() => setCurrentPage(pageNum)}>
+                    <li
+                      key={pageNum}
+                      className={`page-item ${currentPage === pageNum ? "active" : ""}`}
+                    >
+                      <button
+                        className="page-link"
+                        onClick={() => setCurrentPage(pageNum)}
+                      >
                         {pageNum}
                       </button>
                     </li>
@@ -184,8 +224,14 @@ const ManageProducts = () => {
                 })}
 
                 {/* Next Button */}
-                <li className={`page-item ${currentPage === lastPage ? 'disabled' : ''}`}>
-                  <button className="page-link" onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage === lastPage}>
+                <li
+                  className={`page-item ${currentPage === lastPage ? "disabled" : ""}`}
+                >
+                  <button
+                    className="page-link"
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    disabled={currentPage === lastPage}
+                  >
                     Next
                   </button>
                 </li>
