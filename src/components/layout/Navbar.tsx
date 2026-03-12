@@ -1,19 +1,24 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import "./Navbar.css";
+import { useAuth } from "../../../src/components/contex/AtuhContex"; // আপনার AuthContext এর পাথ অনুযায়ী দিন
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth(); // Context থেকে user এবং logout নিয়ে আসা
+
   const handleLogout = () => {
-    localStorage.removeItem('bearer_token');
-    // localStorage.removeItem('user_name');
+    // ১. Context এর logout ফাংশন কল করা (এটি localStorage থেকে token এবং role মুছে দেবে)
+    logout(); 
+    
+    // ২. লগইন পেজে পাঠিয়ে দেওয়া
     navigate('/login');
-    // window.location.href = '/login'
   };
+
   return (
     <nav className="navbar navbar-expand-lg shadow-sm navbar-gradient">
       <div className="container-fluid">
         {/* Logo */}
-        <NavLink className="navbar-brand fw-bold text-white" to="/admin/dashboard">
+        <NavLink className="navbar-brand fw-bold text-white" to="/dashboard">
           NEXT Admin
         </NavLink>
 
@@ -36,18 +41,24 @@ export default function Navbar() {
                 to="#"
                 role="button"
                 data-bs-toggle="dropdown"
+                aria-expanded="false"
               >
-                👤 Admin
+                {/* ইউজারের নাম ডাইনামিক করা */}
+                👤 {user?.role === 'admin' ? 'Admin' : 'Manager'}
               </NavLink>
-              <ul className="dropdown-menu dropdown-menu-end">
+              <ul className="dropdown-menu dropdown-menu-end shadow border-0">
                 <li>
-                  <NavLink className="dropdown-item" to="/admin/profile">
-                    Profile
+                  <NavLink className="dropdown-item py-2" to="/profile">
+                    <i className="bi bi-person me-2"></i> Profile
                   </NavLink>
                 </li>
+                <li><hr className="dropdown-divider" /></li>
                 <li>
-                  <button className="dropdown-item-logout text-danger" onClick={handleLogout}>
-                    Logout
+                  <button 
+                    className="dropdown-item text-danger py-2 fw-bold" 
+                    onClick={handleLogout}
+                  >
+                    <i className="bi bi-box-arrow-right me-2"></i> Logout
                   </button>
                 </li>
               </ul>
