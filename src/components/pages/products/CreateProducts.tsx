@@ -50,10 +50,11 @@ const CreateProduct = () => {
   const [sizes, setSizes] = useState<any[]>([]);
 
   useEffect(() => {
+    document.title = "Create Product";
     // ১. ক্যাটাগরি ফেচ
-      api.get("/categories").then(res => {
-        console.log("Categories from API:", res.data); // এটি কনসোলে প্রিন্ট করবে
-        setCategories(res.data.data || res.data);
+    api.get("/categories").then((res) => {
+      console.log("Categories from API:", res.data); // এটি কনসোলে প্রিন্ট করবে
+      setCategories(res.data.data || res.data);
     });
 
     // ২. ব্র্যান্ড ফেচ
@@ -78,6 +79,44 @@ const CreateProduct = () => {
       [name]: value,
     }));
   };
+  //handle variant Change
+  const handleVariantChange = (
+    index: number,
+    field: keyof Variant,
+    value: any,
+  ) => {
+    const updatedVariants = [...formData.variants];
+    updatedVariants[index] = { ...updatedVariants[index], [field]: value };
+    setFormData((prev) => ({ ...prev, variants: updatedVariants }));
+  };
+
+  //add variant
+  const addVariant = () => {
+    setFormData({
+      ...formData,
+      variants: [
+        ...formData.variants,
+        {
+          sku: "",
+          sale_price: "",
+          stock: "",
+          color_id: "",
+          size_id: "",
+          image: null,
+        },
+      ],
+    });
+  };
+
+  //delete variant
+  const removeVariant = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      variants: prev.variants.filter((_, i) => i !== index),
+    }));
+  };
+
+  //from submit
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,13 +136,15 @@ const CreateProduct = () => {
       data.append(`variants[${index}][sale_price]`, String(v.sale_price));
       data.append(`variants[${index}][stock]`, String(v.stock));
       data.append(`variants[${index}][status_id]`, "1");
+      data.append(`variants[${index}][color_id]`, String(v.color_id));
+      data.append(`variants[${index}][size_id]`, String(v.size_id));
 
       if (v.image) {
         data.append(`images[${index}][]`, v.image);
       }
     });
 
-    // আপনার পছন্দের .then().catch() স্ট্রাকচার
+    // try catch
     api
       .post("/products", data)
       .then((res) => {
@@ -129,7 +170,7 @@ const CreateProduct = () => {
         Create
       </h4>
 
-      <form>
+      <form onSubmit={handleSubmit}>
         {/* ১. জেনারেল ইনফরমেশন কার্ড */}
         <div className="card shadow-sm border-0 mb-4">
           <div className="card-header bg-white py-3 border-bottom">
@@ -188,6 +229,9 @@ const CreateProduct = () => {
                 <div className="input-group">
                   <span className="input-group-text">$</span>
                   <input
+                    name="base_price" // name অবশ্যই formData-র কি (key) এর সাথে মিলতে হবে
+                    value={formData.base_price}
+                    onChange={handleInputChange}
                     type="number"
                     className="form-control"
                     placeholder="0.00"
@@ -197,7 +241,12 @@ const CreateProduct = () => {
 
               <div className="col-md-3 mb-3">
                 <label className="form-label fw-semibold">Global Status</label>
-                <select className="form-select">
+                <select
+                  className="form-select"
+                  name="status_id"
+                  value={formData.status_id}
+                  onChange={handleInputChange}
+                >
                   <option value="1">Active</option>
                   <option value="2">Inactive</option>
                 </select>
@@ -206,6 +255,9 @@ const CreateProduct = () => {
               <div className="col-md-12">
                 <label className="form-label fw-semibold">Description</label>
                 <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
                   className="form-control"
                   rows={4}
                   placeholder="Write something..."
@@ -219,7 +271,11 @@ const CreateProduct = () => {
         <div className="card shadow-sm border-0 mb-4">
           <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
             <h6 className="mb-0 fw-bold text-primary">Product Variants</h6>
-            <button type="button" className="btn btn-primary btn-sm">
+            <button
+              type="button"
+              onClick={addVariant}
+              className="btn btn-primary btn-sm"
+            >
               + Add Variant
             </button>
           </div>
@@ -237,55 +293,109 @@ const CreateProduct = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>
-                      <input
-                        type="text"
-                        className="form-control form-control-sm"
-                        placeholder="SKU-001"
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        className="form-control form-control-sm"
-                        placeholder="0.00"
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        className="form-control form-control-sm"
-                        placeholder="0"
-                      />
-                    </td>
-                    <td>
-                      <div className="d-flex gap-1">
-                        <select className="form-select form-select-sm">
-                          <option value="">Color</option>
-                          <option value="1">Red</option>
-                        </select>
-                        <select className="form-select form-select-sm">
-                          <option value="">Size</option>
-                          <option value="1">XL</option>
-                        </select>
-                      </div>
-                    </td>
-                    <td>
-                      <input
-                        type="file"
-                        className="form-control form-control-sm"
-                      />
-                    </td>
-                    <td className="text-center">
-                      <button
-                        type="button"
-                        className="btn btn-outline-danger btn-sm"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
+                  {formData.variants.map((v, index) => (
+                    <tr key={index}>
+                      <td>
+                        <input
+                          type="text"
+                          className="form-control form-control-sm"
+                          placeholder="SKU-001"
+                          value={v.sku}
+                          onChange={(e) =>
+                            handleVariantChange(index, "sku", e.target.value)
+                          }
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          className="form-control form-control-sm"
+                          value={v.sale_price}
+                          onChange={(e) =>
+                            handleVariantChange(
+                              index,
+                              "sale_price",
+                              e.target.value,
+                            )
+                          }
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          className="form-control form-control-sm"
+                          placeholder="0"
+                          value={v.stock}
+                          onChange={(e) =>
+                            handleVariantChange(index, "stock", e.target.value)
+                          }
+                        />
+                      </td>
+                      <td>
+                        <div className="d-flex gap-1">
+                          <select
+                            className="form-select form-select-sm"
+                            value={v.color_id}
+                            onChange={(e) =>
+                              handleVariantChange(
+                                index,
+                                "color_id",
+                                e.target.value,
+                              )
+                            }
+                          >
+                            <option value="">Color</option>
+                            {colors.map((color) => (
+                              <option key={color.id} value={color.id}>
+                                {color.name}
+                              </option>
+                            ))}
+                          </select>
+                          {/* Size Select */}
+                          <select
+                            className="form-select form-select-sm"
+                            value={v.size_id}
+                            onChange={(e) =>
+                              handleVariantChange(
+                                index,
+                                "size_id",
+                                e.target.value,
+                              )
+                            }
+                          >
+                            <option value="">Size</option>
+                            {sizes.map((size) => (
+                              <option key={size.id} value={size.id}>
+                                {size.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </td>
+                      <td>
+                        <input
+                          type="file"
+                          className="form-control form-control-sm"
+                          onChange={(e) =>
+                            handleVariantChange(
+                              index,
+                              "image",
+                              e.target.files?.[0],
+                            )
+                          }
+                        />
+                      </td>
+                      <td className="text-center">
+                        <button
+                          type="button"
+                          className="btn btn-outline-danger btn-sm"
+                          onClick={() => removeVariant(index)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
