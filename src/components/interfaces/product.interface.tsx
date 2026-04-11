@@ -1,33 +1,46 @@
-// ১. মেইন প্রোডাক্ট ইন্টারফেস
+/**
+ * Variant Interface
+ * 
+ */
+export interface Variant {
+  variant_id?: number; // 
+  sku: string;
+  sale_price: string | number;
+  stock: number;
+  color_id: string | number;
+  size_id: string | number;
+  image?: File | string | null; // for image upload
+}
+
+/**
+ * Product Interface
+ * 
+ */
 export interface Product {
-  id: number;
-  name: string;
-  slug: string;
-  brand_id: number;
-  category_id: number;
-  status_id: number;
-  base_price: number | string;
-  description: string | null;
-  image: string | null;
-  category?: { name: string };
-  brand?: { name: string };
-  status?: { name: string };
+  product_id?: number;
+  product_name: string;
+  category_id: string | number;
+  brand_id: string | number;
+  status_id: string | number;
+  description: string;
+  base_price?: string | number; // optional, if main price given
+  variants: Variant[]; // Variant Array
 }
 
-// ২. ড্রপডাউন ডাটার জন্য (Category, Brand, Status)
-export interface DropdownItem {
-  id: number;
-  name: string;
-}
-
-// ৩. ভ্যালিডেশন এররের জন্য (সব ফিল্ড কভার করবে)
-export interface ProductErrors {
-  name?: string[];
-  category_id?: string[];
-  brand_id?: string[];
-  status_id?: string[];
-  base_price?: string[];
-  image?: string[];
-  description?: string[];
-  [key: string]: string[] | undefined; // ডাইনামিক ফিল্ডের জন্য
-}
+export const defaultProduct: Product = {
+  product_name: "",
+  category_id: "",
+  brand_id: "",
+  status_id: 1, // ডিফল্ট 'Active' আইডি হিসেবে ১ ধরা হয়েছে
+  description: "",
+  variants: [
+    {
+      sku: "",
+      sale_price: "",
+      stock: 0,
+      color_id: "",
+      size_id: "",
+      image: null,
+    },
+  ],
+};

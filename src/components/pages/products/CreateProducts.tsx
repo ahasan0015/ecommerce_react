@@ -1,193 +1,312 @@
-import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import api from "../../../config";
 
-const CreateProducts = () => {
-  const [step, setStep] = useState(1);
+interface Variant {
+  sku: string;
+  sale_price: string | number;
+  stock: string | number;
+  color_id: string | number;
+  size_id: string | number;
+  image?: File | null;
+}
 
-  // মক ডাটা (পরবর্তীতে API থেকে আসবে)
-  const productStatuses = [
-    { id: 1, name: "Published", color: "text-success" },
-    { id: 2, name: "Draft", color: "text-warning" },
-    { id: 3, name: "Pending", color: "text-info" },
-    { id: 4, name: "Inactive", color: "text-danger" },
-  ];
+interface ProductForm {
+  name: string;
+  category_id: string | number;
+  brand_id: string | number;
+  status_id: string | number;
+  base_price: string | number;
+  description: string;
+  variants: Variant[];
+}
 
+const defaultProduct: ProductForm = {
+  name: "",
+  category_id: "",
+  brand_id: "",
+  status_id: 1, // Default Active
+  base_price: "",
+  description: "",
+  variants: [
+    {
+      sku: "",
+      sale_price: "",
+      stock: "",
+      color_id: "",
+      size_id: "",
+      image: null,
+    },
+  ],
+};
+
+const CreateProduct = () => {
+  const navigate = useNavigate();
+  // declair state
+  const [formData, setFormData] = useState<ProductForm>(defaultProduct);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [brands, setBrands] = useState<any[]>([]);
+  const [colors, setColors] = useState<any[]>([]);
+  const [sizes, setSizes] = useState<any[]>([]);
+
+  useEffect(() => {
+    // ১. ক্যাটাগরি ফেচ
+      api.get("/categories").then(res => {
+        console.log("Categories from API:", res.data); // এটি কনসোলে প্রিন্ট করবে
+        setCategories(res.data.data || res.data);
+    });
+
+    // ২. ব্র্যান্ড ফেচ
+    api.get("/brands").then((res) => setBrands(res.data.data || res.data));
+
+    // ৩. কালার ফেচ
+    api.get("/colors").then((res) => setColors(res.data.data || res.data));
+
+    // ৪. সাইজ ফেচ
+    api.get("/sizes").then((res) => setSizes(res.data.data || res.data));
+  }, []);
+
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // ইমেজ পাঠানোর জন্য FormData তৈরি
+    const data = new FormData();
+    data.append("name", formData.name);
+    data.append("category_id", String(formData.category_id));
+    data.append("brand_id", String(formData.brand_id));
+    data.append("status_id", String(formData.status_id));
+    data.append("base_price", String(formData.base_price));
+    data.append("description", formData.description);
+
+    // ভ্যারিয়েন্টগুলো লুপ করে অ্যাপেন্ড করা
+    formData.variants.forEach((v, index) => {
+      data.append(`variants[${index}][sku]`, v.sku);
+      data.append(`variants[${index}][sale_price]`, String(v.sale_price));
+      data.append(`variants[${index}][stock]`, String(v.stock));
+      data.append(`variants[${index}][status_id]`, "1");
+
+      if (v.image) {
+        data.append(`images[${index}][]`, v.image);
+      }
+    });
+
+    // আপনার পছন্দের .then().catch() স্ট্রাকচার
+    api
+      .post("/products", data)
+      .then((res) => {
+        console.log("Success Response:", res.data);
+        alert("Product Created Successfully!");
+        navigate("/products");
+      })
+      .catch((err) => {
+        console.log("Error Response:", err.response?.data);
+        alert("Something went wrong! Check console for details.");
+      });
+  };
   return (
-    <div className="container py-5" style={{ maxWidth: "1050px" }}>
-      
-      {/* 1. Progress Step Indicator */}
-      <div className="card border-0 shadow-sm mb-4">
-        <div className="card-body p-4 d-flex justify-content-center align-items-center gap-5">
-          {[1, 2, 3, 4].map((s) => (
-            <div key={s} className="d-flex align-items-center gap-2">
-              <div className={`rounded-circle d-flex align-items-center justify-content-center transition-all ${step >= s ? 'bg-primary text-white shadow' : 'bg-light text-muted border'}`} style={{ width: "38px", height: "38px", fontWeight: "bold" }}>
-                {s}
-              </div>
-              <span className={`small fw-bold ${step >= s ? 'text-primary' : 'text-muted'}`}>
-                {s === 1 ? "General" : s === 2 ? "Attributes" : s === 3 ? "Variants" : "Media"}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
+    <div className="container-xxl flex-grow-1 container-p-y">
+      {/* ব্রেডক্রাম্ব */}
+      <h4 className="fw-bold py-3 mb-4">
+        <Link
+          to="/products"
+          className="text-muted fw-light text-decoration-none"
+        >
+          Products /
+        </Link>{" "}
+        Create
+      </h4>
 
-      {/* 2. Main Form Container */}
-      <div className="card border-0 shadow-sm p-5 bg-white" style={{ minHeight: "550px", borderRadius: "15px" }}>
-        
-        {/* PAGE 1: Product General Info & Status */}
-        {step === 1 && (
-          <div className="animate__animated animate__fadeIn">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-              <h4 className="fw-bold m-0">Product General Info</h4>
-              <span className="badge bg-light text-dark border px-3 py-2">Initial Setup</span>
-            </div>
-
-            <div className="row g-4">
-              <div className="col-12">
-                <label className="form-label small fw-bold text-uppercase text-secondary">Product Name</label>
-                <input type="text" className="form-control form-control-lg fs-6 border-2" placeholder="e.g. Premium Cotton T-Shirt" />
+      <form>
+        {/* ১. জেনারেল ইনফরমেশন কার্ড */}
+        <div className="card shadow-sm border-0 mb-4">
+          <div className="card-header bg-white py-3 border-bottom">
+            <h6 className="mb-0 fw-bold text-primary">General Information</h6>
+          </div>
+          <div className="card-body">
+            <div className="row g-3">
+              <div className="col-md-6 mb-3">
+                <label className="form-label fw-semibold">Product Name *</label>
+                <input
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  type="text"
+                  className="form-control"
+                  placeholder="Enter Product Name"
+                />
               </div>
 
-              <div className="col-12">
-                <label className="form-label small fw-bold text-uppercase text-secondary">Description</label>
-                <textarea className="form-control border-2" rows={4} placeholder="Describe the key features of this product..."></textarea>
-              </div>
-
-              <div className="col-md-4">
-                <label className="form-label small fw-bold text-uppercase text-secondary">Category</label>
-                <select className="form-select border-2">
-                  <option>Select Category</option>
-                  <option>Men's Fashion</option>
-                  <option>Electronics</option>
-                </select>
-              </div>
-
-              <div className="col-md-4">
-                <label className="form-label small fw-bold text-uppercase text-secondary">Brand</label>
-                <select className="form-select border-2">
-                  <option>Select Brand</option>
-                  <option>Roxy</option>
-                  <option>Nike</option>
-                </select>
-              </div>
-
-              {/* PRODUCT STATUS INTEGRATION */}
-              <div className="col-md-4">
-                <label className="form-label small fw-bold text-uppercase text-secondary">Product Status</label>
-                <select className="form-select border-2 fw-bold text-primary">
-                  {productStatuses.map(status => (
-                    <option key={status.id} value={status.id} className={status.color}>
-                      {status.name}
+              <div className="col-md-3 mb-3">
+                <label className="form-label fw-semibold">Category</label>
+                <select
+                  name="category_id"
+                  value={formData.category_id}
+                  onChange={handleInputChange}
+                  className="form-select"
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
                     </option>
                   ))}
                 </select>
-                <div className="form-text small mt-1">Status determines visibility in the storefront.</div>
+              </div>
+
+              <div className="col-md-3 mb-3">
+                <label className="form-label fw-semibold">Brand</label>
+                <select
+                  name="brand_id"
+                  value={formData.brand_id}
+                  onChange={handleInputChange}
+                  className="form-select"
+                >
+                  <option value="">Select Brand</option>
+                  {brands.map((brand) => (
+                    <option key={brand.id} value={brand.id}>
+                      {brand.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="col-md-3 mb-3">
+                <label className="form-label fw-semibold">Base Price</label>
+                <div className="input-group">
+                  <span className="input-group-text">$</span>
+                  <input
+                    type="number"
+                    className="form-control"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+
+              <div className="col-md-3 mb-3">
+                <label className="form-label fw-semibold">Global Status</label>
+                <select className="form-select">
+                  <option value="1">Active</option>
+                  <option value="2">Inactive</option>
+                </select>
+              </div>
+
+              <div className="col-md-12">
+                <label className="form-label fw-semibold">Description</label>
+                <textarea
+                  className="form-control"
+                  rows={4}
+                  placeholder="Write something..."
+                ></textarea>
               </div>
             </div>
           </div>
-        )}
+        </div>
 
-        {/* PAGE 2: Variant Attributes Selection */}
-        {step === 2 && (
-          <div className="animate__animated animate__fadeIn">
-            <h4 className="fw-bold mb-4">Select Attributes</h4>
-            <div className="mb-5 bg-light p-4 rounded-3 border border-dashed">
-              <h6 className="fw-bold text-muted small text-uppercase mb-3">Colors Swatches</h6>
-              <div className="d-flex gap-3 mt-3 flex-wrap">
-                {['Blue', 'Black', 'Red', 'Green', 'White', 'Yellow'].map(color => (
-                  <button key={color} className="btn btn-outline-primary bg-white border-2 rounded-pill px-4 shadow-sm fw-bold">
-                    <span className="me-2" style={{display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: color.toLowerCase()}}></span>
-                    {color}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="mb-4 bg-light p-4 rounded-3 border border-dashed">
-              <h6 className="fw-bold text-muted small text-uppercase mb-3">Sizes Availability</h6>
-              <div className="d-flex gap-2 mt-3">
-                {['S', 'M', 'L', 'XL', 'XXL'].map(size => (
-                  <button key={size} className="btn btn-white border-2 shadow-sm px-4 fw-bold">{size}</button>
-                ))}
-              </div>
-            </div>
+        {/* ২. ভ্যারিয়েন্ট সেকশন */}
+        <div className="card shadow-sm border-0 mb-4">
+          <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+            <h6 className="mb-0 fw-bold text-primary">Product Variants</h6>
+            <button type="button" className="btn btn-primary btn-sm">
+              + Add Variant
+            </button>
           </div>
-        )}
-
-        {/* PAGE 3: Variant Grid View */}
-        {step === 3 && (
-          <div className="animate__animated animate__fadeIn">
-            <div className="d-flex justify-content-between align-items-end mb-4">
-              <h4 className="fw-bold m-0">Variants Matrix</h4>
-              <button className="btn btn-sm btn-outline-primary fw-bold">Auto-generate SKU</button>
-            </div>
-            <div className="table-responsive border rounded-3 shadow-sm">
-              <table className="table align-middle mb-0">
+          <div className="card-body p-0">
+            <div className="table-responsive text-nowrap">
+              <table className="table table-hover align-middle mb-0">
                 <thead className="table-light">
-                  <tr className="small text-muted text-uppercase fw-bold">
-                    <th className="py-3">Variant</th><th className="py-3">SKU Code</th><th className="py-3">Price ($)</th><th className="py-3">Stock</th><th className="py-3 text-center">Action</th>
+                  <tr>
+                    <th className="border-top-0">SKU *</th>
+                    <th className="border-top-0">Price *</th>
+                    <th className="border-top-0">Stock *</th>
+                    <th className="border-top-0">Color/Size</th>
+                    <th className="border-top-0">Images</th>
+                    <th className="border-top-0 text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {[1, 2, 3].map(i => (
-                    <tr key={i}>
-                      <td className="fw-bold text-primary py-3">Blue / XL</td>
-                      <td><input type="text" className="form-control form-control-sm border-0 bg-light" placeholder="ROXY-BL-XL" /></td>
-                      <td><input type="number" className="form-control form-control-sm border-0 bg-light" placeholder="29.99" /></td>
-                      <td><input type="number" className="form-control form-control-sm border-0 bg-light" placeholder="50" /></td>
-                      <td className="text-center"><button className="btn btn-link text-danger p-0"><i className="bi bi-trash"></i></button></td>
-                    </tr>
-                  ))}
+                  <tr>
+                    <td>
+                      <input
+                        type="text"
+                        className="form-control form-control-sm"
+                        placeholder="SKU-001"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        className="form-control form-control-sm"
+                        placeholder="0.00"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        className="form-control form-control-sm"
+                        placeholder="0"
+                      />
+                    </td>
+                    <td>
+                      <div className="d-flex gap-1">
+                        <select className="form-select form-select-sm">
+                          <option value="">Color</option>
+                          <option value="1">Red</option>
+                        </select>
+                        <select className="form-select form-select-sm">
+                          <option value="">Size</option>
+                          <option value="1">XL</option>
+                        </select>
+                      </div>
+                    </td>
+                    <td>
+                      <input
+                        type="file"
+                        className="form-control form-control-sm"
+                      />
+                    </td>
+                    <td className="text-center">
+                      <button
+                        type="button"
+                        className="btn btn-outline-danger btn-sm"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
           </div>
-        )}
+        </div>
 
-        {/* PAGE 4: Image Management */}
-        {step === 4 && (
-          <div className="row g-4 animate__animated animate__fadeIn">
-            <div className="col-md-8">
-              <h4 className="fw-bold mb-4">Upload Gallery</h4>
-              <div className="border border-dashed border-2 rounded-4 p-5 text-center bg-light border-primary" style={{backgroundColor: '#f8f9ff !important'}}>
-                <i className="bi bi-cloud-arrow-up fs-1 text-primary"></i>
-                <h5 className="mt-3 fw-bold">Drag & Drop Product Images</h5>
-                <p className="text-muted small">Max file size: 2MB. Format: JPG, PNG, WEBP</p>
-                <button className="btn btn-primary px-5 py-2 fw-bold mt-2 shadow-sm">Browse Media</button>
-              </div>
-            </div>
-            <div className="col-md-4">
-              <div className="card border-0 bg-light p-3 shadow-sm" style={{borderRadius: '12px'}}>
-                <h6 className="fw-bold small mb-3 text-uppercase text-muted">Active Variant</h6>
-                <div className="list-group list-group-flush rounded-3 shadow-sm bg-white overflow-hidden">
-                  <button className="list-group-item list-group-item-action active p-3 small fw-bold">Blue / XL</button>
-                  <button className="list-group-item list-group-item-action p-3 small fw-bold">Black / M</button>
-                </div>
-                <div className="alert alert-info mt-3 small py-2 mb-0">
-                  <i className="bi bi-info-circle me-2"></i> Select a variant to upload its specific images.
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Navigation Footer */}
-        <div className="mt-auto pt-5 d-flex justify-content-between align-items-center">
-          <button 
-            className={`btn btn-link text-decoration-none fw-bold text-muted ${step === 1 ? 'invisible' : ''}`} 
-            onClick={() => setStep(step - 1)}
-          >
-            <i className="bi bi-arrow-left me-2"></i> Back to Step {step - 1}
+        {/* বাটন সেকশন */}
+        <div className="text-end mb-5">
+          <button type="button" className="btn btn-outline-secondary me-2 px-4">
+            Cancel
           </button>
-          
-          <button 
-            className={`btn ${step === 4 ? 'btn-success' : 'btn-primary'} px-5 py-2 fw-bold shadow-sm`} 
-            onClick={() => step < 4 ? setStep(step + 1) : alert("Saving to Database...")}
+          <button
+            type="submit"
+            className="btn btn-primary px-5 fw-bold shadow-sm"
           >
-            {step === 4 ? "Publish Product" : "Save & Continue"} <i className={`bi ${step === 4 ? 'bi-check2-circle' : 'bi-chevron-right'} ms-1`}></i>
+            Submit Product
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 };
 
-export default CreateProducts;
+export default CreateProduct;

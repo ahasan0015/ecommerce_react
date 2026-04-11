@@ -16,7 +16,7 @@ interface AuthContextType {
 }
 
 // ৩. কনটেক্সট তৈরি
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // ৪. কাস্টম হুক (useAuth) - এটি সব কম্পোনেন্টে ব্যবহার করবেন
 export const useAuth = () => {

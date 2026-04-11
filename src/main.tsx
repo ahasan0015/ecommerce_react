@@ -45,7 +45,6 @@ import EditBrand from "./components/pages/brands/EditBrand.tsx";
 import CreateCategory from "./components/pages/categories/CreateCategory.tsx";
 import EditCategory from "./components/pages/categories/EditCategories.tsx";
 //products
-import ProductCreate from "./components/pages/products/CreateProducts.tsx";
 import ProductDetails from "./components/pages/products/DetailsProduct.tsx";
 import EditProduct from "./components/pages/products/EditProducts.tsx";
 //sizes
@@ -55,6 +54,8 @@ import ManageColors from "./components/pages/colors/ManageColors.tsx";
 //variant
 import ProductVariants from "./components/pages/productVariants/ProductVariants.tsx";
 import BulkVariantForm from "./components/forms/BulkVariantForm.tsx";
+import CreateProductStatic from "./components/pages/products/CreateProducts.tsx";
+
 
 const AppRoute = createBrowserRouter([
   {
@@ -68,9 +69,9 @@ const AppRoute = createBrowserRouter([
           { path: "/categories", element: <ManageCategories /> },
           { path: "/categories/create", element: <CreateCategory /> },
           { path: "/categories/edit/:id", element: <EditCategory /> },
-          { path: "/orders", element: <ManageOrders /> },
           { path: "/products", element: <ManageProducts /> },
-          { path: "/products/create", element: <ProductCreate /> },
+          { path: "/orders", element: <ManageOrders /> },
+          { path: "/products/create", element: <CreateProductStatic /> },
           { path: "/products/:id", element: <ProductDetails /> },
           { path: "/products/edit/:id", element: <EditProduct /> },
         ],
@@ -82,24 +83,28 @@ const AppRoute = createBrowserRouter([
           { path: "/users/:id", element: <DetailsUser /> },
           { path: "/users/create", element: <CreateUser /> },
           { path: "/users/edit/:id", element: <EditUser /> },
+          { path: "/users", element: <ManageUsers /> },
           { path: "reports", element: <Reports /> },
           { path: "settings", element: <Settings /> },
           { path: "/roles", element: <ManageRoles /> },
           { path: "/reports", element: <Reports /> },
           { path: "/settings", element: <Settings /> },
           { path: "/coupons", element: <ManageCoupons /> },
-          { path: "/users", element: <ManageUsers /> },
           //brands
           { path: "/brands", element: <ManageBrands /> },
           { path: "/brands/create", element: <CreateBrand /> },
           { path: "/brands/edit/:id", element: <EditBrand /> },
           //sizes
+          { path: "/variants/create", element: <BulkVariantForm /> },
+
+          { path: "/variants/products/:id", element: <ProductVariants /> },
           { path: "/sizes", element: <ManageSize /> },
           //colors
           { path: "/colors", element: <ManageColors /> },
+
         ],
       },
-
+      
       { path: "/men/t-shirts", element: <TshirtPage /> },
       { path: "/men/shirts", element: <ShirtCollection /> },
       { path: "/men/pants", element: <PantCollection /> },
@@ -107,8 +112,6 @@ const AppRoute = createBrowserRouter([
       { path: "/cart", element: <CartPage /> },
 
       //Product variants Form
-      { path: "/variants/create", element: <BulkVariantForm /> },
-      { path: "/variants/products/:id", element: <ProductVariants /> },
     ],
   },
   { path: "/login", element: <Login /> },
