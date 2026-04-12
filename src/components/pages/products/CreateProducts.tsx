@@ -48,6 +48,7 @@ const CreateProduct = () => {
   const [brands, setBrands] = useState<any[]>([]);
   const [colors, setColors] = useState<any[]>([]);
   const [sizes, setSizes] = useState<any[]>([]);
+  const [status, setStatus] = useState<any[]>([]);
 
   useEffect(() => {
     document.title = "Create Product";
@@ -65,6 +66,13 @@ const CreateProduct = () => {
 
     // ৪. সাইজ ফেচ
     api.get("/sizes").then((res) => setSizes(res.data.data || res.data));
+
+    //5. Product Status featch
+    api.get("/product-statuses").then((res) => {
+      const statusData = res.data.data || res.data;
+      setStatus(statusData);
+      console.log("Statuses from API:", statusData);
+    });
   }, []);
 
   const handleInputChange = (
@@ -247,8 +255,9 @@ const CreateProduct = () => {
                   value={formData.status_id}
                   onChange={handleInputChange}
                 >
-                  <option value="1">Active</option>
-                  <option value="2">Inactive</option>
+                  {status.map((st) =>(
+                  <option key={st.id} value={st.id}>{st.name}</option>
+                  ))}
                 </select>
               </div>
 

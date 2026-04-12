@@ -74,6 +74,7 @@ const DetailsProduct = () => {
             {product.image ? (
               <img 
                 src={`http://localhost:8000/storage/${product.image}`} 
+                
                 alt={product.name} 
                 className="img-fluid rounded"
                 style={{ 

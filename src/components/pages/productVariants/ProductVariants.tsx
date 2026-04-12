@@ -177,6 +177,9 @@ const ProductVariants = () => {
                                         <td className="text-end pe-4">
                                             <button onClick={() => handleDelete(v.id)} className="btn btn-sm btn-outline-danger border-0"><i className="bi bi-trash"></i></button>
                                         </td>
+                                        <td>
+                                            <button type="submit" className="btn btn-danger">Delete</button>
+                                        </td>
                                     </tr>
                                 ))
                             ) : (
