@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../../config"; // আপনার এপিআই কনফিগ
 import { NavLink } from "react-router-dom";
+import Swal from "sweetalert2";
 
 // আপনার JSON অনুযায়ী ইন্টারফেস আপডেট করা হয়েছে
 interface Variant {
@@ -62,21 +63,30 @@ const ManageProducts = () => {
     fetchProducts(currentPage);
   }, [currentPage]);
 
+ //delete product
+
   const handleDelete = (id: number) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      api
-        .delete(`/products/${id}`)
-        .then((res) => {
-          if (res.data.success || res.status === 200) {
-            alert(res.data.message || "Product deleted successfully");
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        api
+          .delete(`/products/${id}`)
+          .then((res) => {
+            Swal.fire("Deleted!", "Product has been deleted.", "success");
             fetchProducts(currentPage);
-          }
-        })
-        .catch((err) => {
-          console.error("Delete error:", err);
-          alert("Something went wrong while deleting.");
-        });
-    }
+          })
+          .catch((err) => {
+            Swal.fire("Error!", "Something went wrong.", "error");
+          });
+      }
+    });
   };
 
   return (
@@ -84,9 +94,14 @@ const ManageProducts = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h3 className="fw-bold">Products List</h3>
-          <p className="text-muted">Manage your clothing store products here.</p>
+          <p className="text-muted">
+            Manage your clothing store products here.
+          </p>
         </div>
-        <NavLink to={"/products/create"} className="btn btn-primary px-4 shadow-sm">
+        <NavLink
+          to={"/products/create"}
+          className="btn btn-primary px-4 shadow-sm"
+        >
           + Add Product
         </NavLink>
       </div>
@@ -109,7 +124,9 @@ const ManageProducts = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-4">Loading products...</td>
+                    <td colSpan={7} className="text-center py-4">
+                      Loading products...
+                    </td>
                   </tr>
                 ) : products.length > 0 ? (
                   products.map((item, index) => (
@@ -118,7 +135,9 @@ const ManageProducts = () => {
                         {(currentPage - 1) * 10 + (index + 1)}
                       </td>
                       <td>
-                        <span className="fw-bold d-block">{item.product_name}</span>
+                        <span className="fw-bold d-block">
+                          {item.product_name}
+                        </span>
                         <small className="text-muted">{item.slug}</small>
                       </td>
                       <td>
@@ -129,26 +148,40 @@ const ManageProducts = () => {
                       <td>{item.brand_name}</td>
                       <td>
                         {/* ভেরিয়েন্ট থেকে প্রথমটির প্রাইস দেখানো হচ্ছে */}
-                        {item.variants && item.variants.length > 0 
-                          ? Number(item.variants[0].sale_price).toFixed(2) 
+                        {item.variants && item.variants.length > 0
+                          ? Number(item.variants[0].sale_price).toFixed(2)
                           : "0.00"}
                       </td>
                       <td className="text-center">
-                        <span className={`badge rounded-pill ${item.status_name === "Active" ? "bg-success" : "bg-danger"}`}>
+                        <span
+                          className={`badge rounded-pill ${item.status_name === "Active" ? "bg-success" : "bg-danger"}`}
+                        >
                           {item.status_name}
                         </span>
                       </td>
                       <td className="text-center">
-                        <NavLink to={`/variants/products/${item.product_id}`} className="btn btn-sm btn-outline-info me-2">
+                        <NavLink
+                          to={`/variants/products/${item.product_id}`}
+                          className="btn btn-sm btn-outline-info me-2"
+                        >
                           Variants
                         </NavLink>
-                        <NavLink to={`/products/${item.product_id}`} className="btn btn-sm btn-outline-primary me-2">
+                        <NavLink
+                          to={`/products/${item.product_id}`}
+                          className="btn btn-sm btn-outline-primary me-2"
+                        >
                           Details
                         </NavLink>
-                        <NavLink to={`/products/edit/${item.product_id}`} className="btn btn-sm btn-outline-warning me-2">
+                        <NavLink
+                          to={`/products/edit/${item.product_id}`}
+                          className="btn btn-sm btn-outline-warning me-2"
+                        >
                           Edit
                         </NavLink>
-                        <button onClick={() => handleDelete(item.product_id)} className="btn btn-sm btn-outline-danger">
+                        <button
+                          onClick={() => handleDelete(item.product_id)}
+                          className="btn btn-sm btn-outline-danger"
+                        >
                           Delete
                         </button>
                       </td>
@@ -156,7 +189,9 @@ const ManageProducts = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="text-center py-4">No products found.</td>
+                    <td colSpan={7} className="text-center py-4">
+                      No products found.
+                    </td>
                   </tr>
                 )}
               </tbody>
@@ -168,21 +203,44 @@ const ManageProducts = () => {
         <div className="card-footer bg-white border-0 py-3">
           <div className="d-flex justify-content-between align-items-center">
             <div className="text-muted small">
-              Showing page <strong>{currentPage}</strong> of <strong>{lastPage}</strong>
+              Showing page <strong>{currentPage}</strong> of{" "}
+              <strong>{lastPage}</strong>
             </div>
             <nav>
               <ul className="pagination pagination-sm mb-0">
-                <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-                  <button className="page-link" onClick={() => setCurrentPage(currentPage - 1)}>Previous</button>
+                <li
+                  className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
+                >
+                  <button
+                    className="page-link"
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                  >
+                    Previous
+                  </button>
                 </li>
                 {/* পাজিনেশন বাটনগুলো এখানে অটোমেটিক জেনারেট হবে */}
                 {[...Array(lastPage)].map((_, i) => (
-                  <li key={i} className={`page-item ${currentPage === i + 1 ? "active" : ""}`}>
-                    <button className="page-link" onClick={() => setCurrentPage(i + 1)}>{i + 1}</button>
+                  <li
+                    key={i}
+                    className={`page-item ${currentPage === i + 1 ? "active" : ""}`}
+                  >
+                    <button
+                      className="page-link"
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
+                      {i + 1}
+                    </button>
                   </li>
                 ))}
-                <li className={`page-item ${currentPage === lastPage ? "disabled" : ""}`}>
-                  <button className="page-link" onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+                <li
+                  className={`page-item ${currentPage === lastPage ? "disabled" : ""}`}
+                >
+                  <button
+                    className="page-link"
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                  >
+                    Next
+                  </button>
                 </li>
               </ul>
             </nav>
