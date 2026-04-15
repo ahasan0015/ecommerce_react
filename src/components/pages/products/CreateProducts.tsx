@@ -8,7 +8,7 @@ interface Variant {
   stock: string | number;
   color_id: string | number;
   size_id: string | number;
-  image?: File | null;
+  images: File[];
 }
 
 interface ProductForm {
@@ -35,7 +35,7 @@ const defaultProduct: ProductForm = {
       stock: "",
       color_id: "",
       size_id: "",
-      image: null,
+      images: [],
     },
   ],
 };
@@ -110,7 +110,7 @@ const CreateProduct = () => {
           stock: "",
           color_id: "",
           size_id: "",
-          image: null,
+          images: [],
         },
       ],
     });
@@ -147,8 +147,11 @@ const CreateProduct = () => {
       data.append(`variants[${index}][color_id]`, String(v.color_id));
       data.append(`variants[${index}][size_id]`, String(v.size_id));
 
-      if (v.image) {
-        data.append(`images[${index}][]`, v.image);
+      if (v.images && v.images.length > 0) {
+        v.images.forEach((file) => {
+          // [index][images][] এভাবে পাঠান যাতে লারাভেল এটাকে অ্যারে হিসেবে পায়
+          data.append(`variants[${index}][images][]`, file);
+        });
       }
     });
 
@@ -255,8 +258,10 @@ const CreateProduct = () => {
                   value={formData.status_id}
                   onChange={handleInputChange}
                 >
-                  {status.map((st) =>(
-                  <option key={st.id} value={st.id}>{st.name}</option>
+                  {status.map((st) => (
+                    <option key={st.id} value={st.id}>
+                      {st.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -385,11 +390,12 @@ const CreateProduct = () => {
                         <input
                           type="file"
                           className="form-control form-control-sm"
+                          multiple
                           onChange={(e) =>
                             handleVariantChange(
                               index,
-                              "image",
-                              e.target.files?.[0],
+                              "images",
+                              Array.from(e.target.files || []),
                             )
                           }
                         />
