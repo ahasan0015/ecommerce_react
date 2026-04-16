@@ -39,14 +39,11 @@ const ManageProducts = () => {
       .get(`/products?page=${page}`)
       .then((res) => {
         if (res.data.success) {
-          // আপনার JSON অনুযায়ী res.data.data সরাসরি অ্যারে
-          const productsArray = res.data.data || [];
-          setProducts(productsArray);
-
-          // যদি ব্যাকএন্ড থেকে পাজিনেশন অবজেক্ট না আসে, তবে ডিফল্ট মান
+          setProducts(res.data.data || []);
           setCurrentPage(res.data.current_page || 1);
           setLastPage(res.data.last_page || 1);
-          setTotal(res.data.total || productsArray.length);
+          setTotal(res.data.total || 0);
+          // আপনার JSON অনুযায়ী res.data.data সরাসরি অ্যারে
         }
       })
       .catch((err) => {
@@ -63,7 +60,7 @@ const ManageProducts = () => {
     fetchProducts(currentPage);
   }, [currentPage]);
 
- //delete product
+  //delete product
 
   const handleDelete = (id: number) => {
     Swal.fire({
