@@ -1,93 +1,192 @@
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import api from "../../../config";
+import Swal from "sweetalert2";
 
-interface OrderStatus { id: number; name: string; }
+// --- Interfaces ---
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string;
+}
 
 interface Order {
   id: number;
   order_number: string;
-  user_name: string;
-  total: number;
-  payment_method: string;
-  order_status_id: number;
+  total: string;
   created_at: string;
+  order_status_id: number;
+  user?: User; // Optional user relationship
 }
 
-const ManageOrders = () => {
-  // Static order statuses
-  const statuses: OrderStatus[] = [
-    { id: 1, name: "Pending" },
-    { id: 2, name: "Processing" },
-    { id: 3, name: "Completed" },
-    { id: 4, name: "Cancelled" },
-  ];
+// SweetAlert Toast configuration for reusable notifications
+const Toast = Swal.mixin({
+  toast: true,
+  position: "top-end",
+  showConfirmButton: false,
+  timer: 3000,
+  timerProgressBar: true,
+});
 
-  // Static orders
-  const [orders, setOrders] = useState<Order[]>([
-    { id: 1, order_number: "ORD-1001", user_name: "John Doe", total: 150.5, payment_method: "Credit Card", order_status_id: 1, created_at: "2026-02-04" },
-    { id: 2, order_number: "ORD-1002", user_name: "Sarah Smith", total: 299.99, payment_method: "PayPal", order_status_id: 3, created_at: "2026-02-03" },
-    { id: 3, order_number: "ORD-1003", user_name: "Admin User", total: 75.0, payment_method: "Cash On Delivery", order_status_id: 2, created_at: "2026-02-02" },
-  ]);
+const ManageOrders: React.FC = () => {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const getStatusName = (id: number) => statuses.find(s => s.id === id)?.name || "";
+  // ১. স্ট্যাটাস আপডেট করার ফাংশন
+  const handleStatusChange = async (orderId: number, newStatusId: string) => {
+    // Delivered (4) সিলেক্ট করলে কনফার্মেশন চাওয়া (Stock কমার সতর্কবার্তা)
+    if (newStatusId === "4") {
+      const result = await Swal.fire({
+        title: "আপনি কি নিশ্চিত?",
+        text: "ডেলিভারড স্ট্যাটাস দিলে প্রোডাক্টের স্টক কমে যাবে!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#198754",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "হ্যাঁ, ডেলিভারড!",
+        cancelButtonText: "বাতিল",
+      });
 
-  const getStatusBadgeClass = (id: number) => {
-    switch(id) {
-      case 1: return "bg-warning text-dark";
-      case 2: return "bg-primary";
-      case 3: return "bg-success";
-      case 4: return "bg-danger";
-      default: return "bg-secondary";
+      if (!result.isConfirmed) {
+        // যদি ইউজার ক্যানসেল করে, তবে ড্রপডাউন আগের অবস্থায় রাখতে লিস্ট রি-ফেচ করতে পারেন 
+        // অথবা স্টেট থেকে কারেন্ট ভ্যালু সেট করে রাখতে পারেন।
+        return;
+      }
+    }
+
+    try {
+      const response = await api.put(`admin/orders/${orderId}/status`, {
+        order_status_id: newStatusId,
+      });
+
+      if (response.data.status === "success") {
+        // লোকাল স্টেট আপডেট করুন
+        setOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order.id === orderId
+              ? { ...order, order_status_id: parseInt(newStatusId) }
+              : order
+          )
+        );
+
+        // SweetAlert সাকসেস টোস্ট
+        Toast.fire({
+          icon: "success",
+          title: response.data.message || "স্ট্যাটাস আপডেট হয়েছে",
+        });
+      }
+    } catch (error: any) {
+      console.error("Error updating status:", error);
+      Swal.fire({
+        icon: "error",
+        title: "ওহ না!",
+        text: error.response?.data?.message || "স্ট্যাটাস আপডেট করতে সমস্যা হয়েছে।",
+      });
     }
   };
 
-  const handleDelete = (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this order?")) return;
-    setOrders(orders.filter(o => o.id !== id));
-  };
+  useEffect(() => {
+    api
+      .get("admin/orders")
+      .then((response) => setOrders(response.data))
+      .catch((error) => {
+        console.error("Error fetching orders:", error);
+        Toast.fire({
+          icon: "error",
+          title: "ডাটা লোড করতে ব্যর্থ!",
+        });
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading)
+    return (
+      <div className="text-center my-5">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
 
   return (
-    <div className="container mt-4">
-      <div className="card shadow">
-        <div className="card-header d-flex justify-content-between align-items-center">
-          <h5>Orders Management</h5>
-          <button className="btn btn-primary">+ Add Order</button>
+    <div className="container-fluid mt-4">
+      <div className="card shadow-sm border-0">
+        <div className="card-header bg-white py-3 border-bottom">
+          <h5 className="mb-0 fw-bold text-dark">Order Management</h5>
         </div>
-
-        <div className="card-body">
-          <table className="table table-hover table-bordered align-middle">
-            <thead className="table-light">
-              <tr>
-                <th>ID</th>
-                <th>Order Number</th>
-                <th>User</th>
-                <th>Total ($)</th>
-                <th>Payment</th>
-                <th>Status</th>
-                <th className="text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map(o => (
-                <tr key={o.id}>
-                  <td>{o.id}</td>
-                  <td>{o.order_number}</td>
-                  <td>{o.user_name}</td>
-                  <td>{o.total.toFixed(2)}</td>
-                  <td>{o.payment_method}</td>
-                  <td>
-                    <span className={`badge ${getStatusBadgeClass(o.order_status_id)}`}>
-                      {getStatusName(o.order_status_id)}
-                    </span>
-                  </td>
-                  <td className="text-center">
-                    <button className="btn btn-secondary btn-sm me-2">View</button>
-                    <button className="btn btn-warning btn-sm me-2">Edit</button>
-                    <button className="btn btn-danger btn-sm" onClick={() => handleDelete(o.id)}>Delete</button>
-                  </td>
+        <div className="card-body p-0">
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead className="table-light text-secondary">
+                <tr>
+                  <th className="ps-4">Order #</th>
+                  <th>Customer</th>
+                  <th>Total Amount</th>
+                  <th>Status</th>
+                  <th className="text-center">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {orders.length > 0 ? (
+                  orders.map((order) => (
+                    <tr key={order.id}>
+                      <td className="ps-4 fw-medium text-primary">
+                        #{order.order_number}
+                      </td>
+                      <td>
+                        <div className="fw-bold text-dark">
+                          {order.user?.name || "Guest User"}
+                        </div>
+                        <small className="text-muted">{order.user?.email}</small>
+                      </td>
+                      <td className="fw-bold">
+                        ৳{parseFloat(order.total).toLocaleString()}
+                      </td>
+
+                      <td>
+                        <select
+                          className={`form-select form-select-sm fw-bold ${
+                            order.order_status_id === 4
+                              ? "border-success text-success"
+                              : order.order_status_id === 5
+                              ? "border-danger text-danger"
+                              : "border-primary text-primary"
+                          }`}
+                          style={{ width: "140px", cursor: "pointer" }}
+                          value={order.order_status_id}
+                          onChange={(e) =>
+                            handleStatusChange(order.id, e.target.value)
+                          }
+                        >
+                          <option value="1">⏳ Pending</option>
+                          <option value="2">⚙️ Processing</option>
+                          <option value="3">🚚 Shipped</option>
+                          <option value="4">✅ Delivered</option>
+                          <option value="5">❌ Cancelled</option>
+                        </select>
+                      </td>
+
+                      <td className="text-center">
+                        <Link
+                          to={`/admin/orders/${order.id}`}
+                          className="btn btn-sm btn-outline-primary rounded-pill px-3"
+                        >
+                          View Details
+                        </Link>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="text-center py-5 text-muted">
+                      কোনো অর্ডার পাওয়া যায়নি।
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
