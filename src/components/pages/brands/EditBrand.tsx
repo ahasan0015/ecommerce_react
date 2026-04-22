@@ -2,64 +2,101 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { defaultBrand, type Brand } from "../../interfaces/brand.interface";
 import api from "../../../config";
+import axios, { AxiosError } from "axios";
+import Swal from "sweetalert2";
+import { Alert } from "react-bootstrap";
+
+interface Status {
+  id: number;
+  name: string;
+}
+
+interface ValidationErrors {
+  [key: string]: string[];
+}
+
+// API থেকে আসা এরর রেসপন্সের টাইপ
+interface ApiErrorResponse {
+  message?: string;
+  errors?: ValidationErrors;
+}
 
 const EditBrand = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  // ১. প্রধান ডাটা স্টেট (আপনার User ইন্টারফেস স্টাইলে)
-  const [brand, setBrand] = useState<Brand>(defaultBrand);
-  // ২. নতুন লোগো ফাইলের জন্য আলাদা স্টেট (ইউজার যখন কম্পিউটার থেকে ফাইল সিলেক্ট করবে)
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  //৩. ড্রপডাউনের জন্য স্ট্যাটাস লিস্ট (Active, Inactive ইত্যাদি)
-  const [statuses, setStatuses] = useState<any[]>([]);
 
-  // ১. ডাটা ফেচ করা (ইফেক্ট হুক)
+  const [brand, setBrand] = useState<Brand>(defaultBrand);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [statuses, setStatuses] = useState<Status[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [validationErrors, setValidationErrors] =
+    useState<ValidationErrors | null>(null);
+
   useEffect(() => {
     document.title = "Edit Brand";
     getInitialData();
   }, [id]);
 
-  const getInitialData = () => {
-    // স্ট্যাটাস লিস্ট নিয়ে আসা
-    api
-      .get("/product-statuses")
-      .then((res) => {
-        console.log(res.data);
-        setStatuses(res.data);
-      })
-      .catch((err) => console.error("Status fetch error:", err));
+  const getInitialData = async () => {
+    try {
+      const statusRes = await api.get("/product-statuses");
+      const statusData: Status[] = Array.isArray(statusRes.data)
+        ? statusRes.data
+        : statusRes.data?.data || [];
+      setStatuses(statusData);
 
-    // ব্র্যান্ডের পুরনো ডাটা নিয়ে আসা
-    api
-      .get(`/brands/${id}`)
-      .then((res) => {
-        // res.data সরাসরি ব্র্যান্ড অবজেক্ট (নাম, স্ট্যাটাস আইডি, লোগো পাথ থাকে)
-        console.log(res.data.data);
-        setBrand(res.data.data);
-      })
-      .catch((err) => {
-        console.error("Brand fetch error:", err);
-        alert("Could not load brand data!");
-      });
+      const brandRes = await api.get(`/brands/${id}`);
+      const brandData: Brand = brandRes.data?.data || brandRes.data;
+      setBrand(brandData);
+    } catch (err) {
+      console.error("Fetch error:", err);
+      Swal.fire("Error", "Could not load data!", "error");
+    }
   };
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setValidationErrors(null);
+
     const formData = new FormData();
     formData.append("name", brand.name);
     formData.append("status_id", brand.status_id.toString());
-    formData.append("_method", "PUT"); // Laravel-এর জন্য জরুরি
+    formData.append("_method", "PUT"); // Laravel Method Spoofing
 
     if (logoFile) {
       formData.append("logo", logoFile);
     }
 
-    api
-      .post(`/brands/${id}`, formData)
-      .then(() => {
-        alert("Updated!");
-        navigate("/brands");
-      })
-      .catch((err) => console.error(err));
+    try {
+      await api.post(`/brands/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: "Updated!",
+        text: "Brand updated successfully!",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      navigate("/brands");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+       
+        const serverError = err as AxiosError<ApiErrorResponse>;
+        if (serverError.response?.status === 422) {
+          const errors =
+            serverError.response.data?.errors ||
+            (serverError.response.data as unknown as ValidationErrors);
+          setValidationErrors(errors);
+        } else {
+          Swal.fire("Error", "Update failed!", "error");
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -67,37 +104,48 @@ const EditBrand = () => {
       <div className="row justify-content-center">
         <div className="col-md-6">
           <div className="card shadow-sm border-0">
-            {/* Header */}
             <div className="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
               <h5 className="mb-0">Edit Brand</h5>
               <span className="badge bg-primary rounded-pill">ID: {id}</span>
             </div>
 
             <div className="card-body p-4">
+              {validationErrors && (
+                <Alert variant="danger" className="py-2">
+                  <ul className="mb-0 small">
+                    {Object.entries(validationErrors).map(([key, messages]) => (
+                      <li key={key}>
+                        <strong>{key.replace("_", " ")}:</strong> {messages[0]}
+                      </li>
+                    ))}
+                  </ul>
+                </Alert>
+              )}
+
               <form onSubmit={handleSubmit}>
-                {/* Brand Name Input */}
                 <div className="mb-3">
                   <label className="form-label fw-bold">Brand Name</label>
                   <input
                     type="text"
-                    className="form-control"
-                    value={brand.name || ""} // ডাটা বাইন্ডিং
+                    className={`form-control ${validationErrors?.name ? "is-invalid" : ""}`}
+                    value={brand.name || ""}
                     onChange={(e) =>
                       setBrand({ ...brand, name: e.target.value })
-                    } // স্টেট আপডেট
+                    }
                     placeholder="Enter brand name"
+                    required
                   />
                 </div>
 
-                {/* Status Dropdown */}
                 <div className="mb-3">
                   <label className="form-label fw-bold">Status</label>
                   <select
-                    className="form-select"
+                    className={`form-select ${validationErrors?.status_id ? "is-invalid" : ""}`}
                     value={brand.status_id || ""}
                     onChange={(e) =>
                       setBrand({ ...brand, status_id: Number(e.target.value) })
                     }
+                    required
                   >
                     <option value="">Select Status</option>
                     {statuses.map((st) => (
@@ -108,19 +156,16 @@ const EditBrand = () => {
                   </select>
                 </div>
 
-                {/* Logo Section */}
                 <div className="mb-4">
                   <label className="form-label fw-bold">Brand Logo</label>
-
-                  {/* Static Preview Area */}
                   <div className="d-flex align-items-center gap-3 p-3 border rounded bg-light mb-3">
                     <img
                       src={
                         logoFile
-                          ? URL.createObjectURL(logoFile) // ১. নতুন সিলেক্ট করা ফাইল থাকলে সেটির প্রিভিউ
+                          ? URL.createObjectURL(logoFile)
                           : brand.logo
-                            ? `http://localhost:8000/storage/${brand.logo}` // ২. সার্ভারের ইমেজের পূর্ণ লিঙ্ক
-                            : "https://via.placeholder.com/80" // ৩. কিছু না থাকলে প্লেসহোল্ডার
+                            ? `http://localhost:8000/storage/${brand.logo}`
+                            : "https://via.placeholder.com/80"
                       }
                       alt="Brand"
                       className="img-thumbnail"
@@ -138,7 +183,7 @@ const EditBrand = () => {
 
                   <input
                     type="file"
-                    className="form-control"
+                    className={`form-control ${validationErrors?.logo ? "is-invalid" : ""}`}
                     accept="image/*"
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
@@ -148,18 +193,16 @@ const EditBrand = () => {
                   />
                 </div>
 
-                <hr className="my-4" />
-
-                {/* Action Buttons */}
-                <div className="d-flex justify-content-end gap-2">
+                <div className="d-flex justify-content-end gap-2 border-top pt-3">
                   <Link to="/brands" className="btn btn-outline-secondary px-4">
                     Cancel
                   </Link>
                   <button
                     type="submit"
-                    className="btn btn-primary px-4 fw-bold shadow-sm"
+                    className="btn btn-primary px-4 fw-bold"
+                    disabled={loading}
                   >
-                    Update Brand
+                    {loading ? "Updating..." : "Update Brand"}
                   </button>
                 </div>
               </form>
