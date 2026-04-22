@@ -1,266 +1,337 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../../../config";
+import {
+  Spinner,
+  Badge,
+  Button,
+  Card,
+  Row,
+  Col,
+  Table,
+  Carousel,
+} from "react-bootstrap";
+import Swal from "sweetalert2";
 
-interface VariantImage {
-  id: number;
+// 1. Interfaces for Type Safety
+interface GalleryImage {
   image: string;
   is_main: number;
 }
+
 interface Variant {
   id: number;
   sku: string;
-  images: VariantImage[]; // এখানে ইমেজগুলো থাকে
+  sale_price: number;
+  stock: number;
+  color_name: string | null;
+  size_name: string | null;
 }
 
-interface Product {
+interface ProductDetails {
   id: number;
   name: string;
   slug: string;
-  brand_id: number;
-  category_id: number;
-  status_id: number;
-  base_price: number | string;
   description: string | null;
-  image: string | null;
-  category?: { name: string };
-  brand?: { name: string };
-  status?: { name: string };
-  variants?: Variant[];
+  base_price: number;
+  main_image: string | null;
+  category_name: string;
+  brand_name: string;
+  status_name: string;
+  gallery: GalleryImage[];
+  variants: Variant[];
 }
 
 const DetailsProduct = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { id } = useParams();
 
-  const [product, setProduct] = useState<Product | null>(null);
+  // States
+  const [product, setProduct] = useState<ProductDetails | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [activeIndex, setActiveIndex] = useState<number>(0);
+
+  const storageUrl = "http://127.0.0.1:8000/storage/";
 
   useEffect(() => {
-    document.title = "Product Details";
-    if (id) {
-      fetchProduct(id);
-    }
+    fetchProduct();
+    // Scroll to top on load
+    window.scrollTo(0, 0);
   }, [id]);
 
-  const fetchProduct = (productId: string) => {
+  const fetchProduct = async () => {
     setLoading(true);
-    api
-      .get(`/products/${productId}`)
-      .then((res) => {
-        const dataFromApi = res.data.data || res.data;
-        setProduct(dataFromApi);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("API Error:", err);
-        setLoading(false);
-        alert("Product not found!");
+    try {
+      const res = await api.get(`/products/${id}`);
+      if (res.data.success) {
+        setProduct(res.data.data);
+      } else {
+        Swal.fire("Error", "Product not found!", "error");
         navigate("/products");
-      });
+      }
+    } catch (err) {
+      console.error("Fetch Error:", err);
+      Swal.fire("Error", "Failed to load product details", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSelect = (selectedIndex: number) => {
+    setActiveIndex(selectedIndex);
   };
 
   if (loading) {
     return (
-      <div className="container mt-5 text-center">
-        <div className="spinner-border text-primary" role="status"></div>
-        <p className="mt-2 text-muted">Loading product information...</p>
+      <div
+        className="d-flex justify-content-center align-items-center bg-white"
+        style={{ minHeight: "80vh" }}
+      >
+        <div className="text-center">
+          <Spinner animation="border" variant="primary" />
+          <p className="mt-2 fw-bold text-muted">Loading Details...</p>
+        </div>
       </div>
     );
   }
 
-  // ডাটা না থাকলে আগেই রিটার্ন করে দেওয়া হচ্ছে, তাই এর নিচের কোডগুলোতে TypeScript নিশ্চিত যে product আছে।
-  if (!product) {
+  if (!product)
     return (
-      <div className="container mt-5 text-center">
-        <div className="alert alert-warning">No product data found.</div>
-        <button className="btn btn-secondary" onClick={() => navigate(-1)}>
-          Back
-        </button>
-      </div>
+      <div className="container mt-5 alert alert-danger">No Product Found!</div>
     );
-  }
 
   return (
-    <div className="container mt-4 mb-5">
-      <div className="row">
-        <div className="col-md-6 mb-4">
-          <div className="card shadow-sm border-0 bg-white p-3 text-center h-100 d-flex align-items-center justify-content-center">
-            {/* ১. সব ভেরিয়েন্টের সব ছবিকে একটি অ্যারেতে নিয়ে আসা */}
-            {(() => {
-              const allImages =
-                product.variants?.flatMap((v) => v.images) || [];
-
-              return allImages.length > 0 ? (
-                <div
-                  id={`carousel-${product.id}`}
-                  className="carousel slide w-100"
-                  data-bs-ride="carousel"
-                >
-                  {/* ইন্ডিকেটর (ঐচ্ছিক: নিচের ছোট ডটগুলো) */}
-                  {allImages.length > 1 && (
-                    <div className="carousel-indicators">
-                      {allImages.map((_, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          data-bs-target={`#carousel-${product.id}`}
-                          data-bs-slide-to={idx}
-                          className={idx === 0 ? "active" : ""}
-                          aria-current={idx === 0 ? "true" : "false"}
-                        ></button>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* স্লাইড আইটেম */}
-                  <div className="carousel-inner">
-                    {allImages.map((imgObj, idx) => (
-                      <div
-                        key={idx}
-                        className={`carousel-item ${idx === 0 ? "active" : ""}`}
-                      >
-                        <img
-                          src={`http://localhost:8000/storage/${imgObj.image}`}
-                          alt={`${product.name}-${idx}`}
-                          className="img-fluid rounded"
-                          style={{
-                            maxHeight: "500px",
-                            width: "100%",
-                            objectFit: "contain",
-                            backgroundColor: "#ffffff",
-                          }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* কন্ট্রোল বাটন (ছবি ১টার বেশি হলে দেখাবে) */}
-                  {allImages.length > 1 && (
-                    <>
-                      <button
-                        className="carousel-control-prev"
-                        type="button"
-                        data-bs-target={`#carousel-${product.id}`}
-                        data-bs-slide="prev"
-                      >
-                        <span
-                          className="carousel-control-prev-icon bg-dark rounded-circle"
-                          aria-hidden="true"
-                        ></span>
-                        <span className="visually-hidden">Previous</span>
-                      </button>
-                      <button
-                        className="carousel-control-next"
-                        type="button"
-                        data-bs-target={`#carousel-${product.id}`}
-                        data-bs-slide="next"
-                      >
-                        <span
-                          className="carousel-control-next-icon bg-dark rounded-circle"
-                          aria-hidden="true"
-                        ></span>
-                        <span className="visually-hidden">Next</span>
-                      </button>
-                    </>
-                  )}
-                </div>
-              ) : (
-                /* ছবি না থাকলে যা দেখাবে */
-                <div
-                  className="bg-light d-flex align-items-center justify-content-center rounded border w-100"
-                  style={{ minHeight: "400px" }}
-                >
-                  <span className="text-muted italic">No Photo Available</span>
-                </div>
-              );
-            })()}
-          </div>
-        </div>
-
-        <div className="col-md-6">
-          <div className="ps-md-4">
+    <div className="container-fluid py-3 py-md-5 bg-light min-vh-100">
+      <div className="container">
+        {/* Header & Navigation */}
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+          <div>
+            <h2 className="fw-bold text-dark mb-1">{product.name}</h2>
             <nav aria-label="breadcrumb">
-              <ol className="breadcrumb small">
+              <ol className="breadcrumb mb-0 small">
                 <li className="breadcrumb-item">
-                  <Link to="/products">Products</Link>
+                  <Link to="/products" className="text-decoration-none">
+                    Products
+                  </Link>
                 </li>
-                <li className="breadcrumb-item active text-truncate">
-                  {product.name}
-                </li>
+                <li className="breadcrumb-item active">{product.name}</li>
               </ol>
             </nav>
-
-            <h1 className="fw-bold text-dark display-6 mb-1">{product.name}</h1>
-            <p className="text-muted mb-3">
-              Slug: <span className="text-dark">{product.slug}</span>
-            </p>
-
-            <div className="d-flex align-items-center gap-3 mb-4">
-              <h2 className="text-success fw-bold mb-0">
-                {Number(product.base_price).toLocaleString()}{" "}
-                <small className="fs-6 text-muted">BDT</small>
-              </h2>
-              <span
-                className={`badge ${product.status?.name === "Active" ? "bg-success" : "bg-danger"} py-2 px-3`}
-              >
-                {product.status?.name || "Unknown"}
-              </span>
-            </div>
-
-            <hr className="my-4" />
-
-            <div className="row g-3 mb-4">
-              <div className="col-sm-6">
-                <div className="p-3 border rounded bg-light text-center">
-                  <small className="text-muted d-block fw-bold text-uppercase">
-                    Category
-                  </small>
-                  {/* Optional chaining safely accesses optional interface properties */}
-                  <span className="text-primary fw-bold">
-                    {product.category?.name ?? "N/A"}
-                  </span>
-                </div>
-              </div>
-              <div className="col-sm-6">
-                <div className="p-3 border rounded bg-light text-center">
-                  <small className="text-muted d-block fw-bold text-uppercase">
-                    Brand
-                  </small>
-                  <span className="text-primary fw-bold">
-                    {product.brand?.name ?? "N/A"}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <h6 className="fw-bold border-bottom pb-2">Description</h6>
-              <p
-                className="text-secondary lh-lg"
-                style={{ whiteSpace: "pre-line" }}
-              >
-                {product.description ||
-                  "No description provided for this item."}
-              </p>
-            </div>
-
-            <div className="mt-5 d-flex gap-2">
-              <button
-                onClick={() => navigate(`/products/edit/${product.id}`)}
-                className="btn btn-warning px-5 py-2 fw-bold shadow-sm"
-              >
-                Edit Product
-              </button>
-              <button
-                onClick={() => navigate(-1)}
-                className="btn btn-outline-dark px-4 py-2"
-              >
-                Go Back
-              </button>
-            </div>
+          </div>
+          <div className="d-flex gap-2 w-100 w-md-auto">
+            <Button
+              variant="outline-secondary"
+              className="flex-grow-1 flex-md-grow-0"
+              onClick={() => navigate("/products")}
+            >
+              Back
+            </Button>
+            <Button
+              variant="primary"
+              className="flex-grow-1 flex-md-grow-0"
+              onClick={() => navigate(`/products/edit/${product.id}`)}
+            >
+              Edit
+            </Button>
           </div>
         </div>
+
+        <Row className="g-4">
+          {/* Left Column: Image Carousel */}
+          <Col lg={6}>
+            <Card
+              className="border-0 shadow-sm rounded-4 overflow-hidden sticky-lg-top"
+              style={{ top: "20px" }}
+            >
+              <Carousel
+                activeIndex={activeIndex}
+                onSelect={handleSelect}
+                interval={null}
+                variant="dark"
+                className="bg-white"
+              >
+                {/* Main Image Slide */}
+                <Carousel.Item>
+                  <div
+                    className="d-flex align-items-center justify-content-center p-2"
+                    style={{ height: "400px" }}
+                  >
+                    <img
+                      src={
+                        product.main_image
+                          ? `${storageUrl}${product.main_image}`
+                          : "https://via.placeholder.com/500x400?text=No+Image"
+                      }
+                      className="img-fluid"
+                      alt="main"
+                      style={{ maxHeight: "100%", objectFit: "contain" }}
+                    />
+                  </div>
+                </Carousel.Item>
+
+                {/* Gallery Images Slide */}
+                {product.gallery?.map((img, idx) => (
+                  <Carousel.Item key={idx}>
+                    <div
+                      className="d-flex align-items-center justify-content-center p-2"
+                      style={{ height: "400px" }}
+                    >
+                      <img
+                        src={`${storageUrl}${img.image}`}
+                        className="img-fluid"
+                        alt={`gallery-${idx}`}
+                        style={{ maxHeight: "100%", objectFit: "contain" }}
+                      />
+                    </div>
+                  </Carousel.Item>
+                ))}
+              </Carousel>
+
+              {/* Thumbnails */}
+              <Card.Body className="bg-light border-top p-3">
+                <div className="d-flex gap-2 overflow-auto justify-content-start flex-nowrap pb-2">
+                  <img
+                    src={`${storageUrl}${product.main_image}`}
+                    className={`img-thumbnail rounded-3 flex-shrink-0 ${activeIndex === 0 ? "border-primary border-2" : ""}`}
+                    style={{
+                      width: "65px",
+                      height: "65px",
+                      objectFit: "cover",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setActiveIndex(0)}
+                    alt="thumb-main"
+                  />
+                  {product.gallery?.map((img, idx) => (
+                    <img
+                      key={idx}
+                      src={`${storageUrl}${img.image}`}
+                      className={`img-thumbnail rounded-3 flex-shrink-0 ${activeIndex === idx + 1 ? "border-primary border-2" : ""}`}
+                      style={{
+                        width: "65px",
+                        height: "65px",
+                        objectFit: "cover",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => setActiveIndex(idx + 1)}
+                      alt={`thumb-${idx}`}
+                    />
+                  ))}
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+
+          {/* Right Column: Information & Variants */}
+          <Col lg={6}>
+            <div className="d-flex flex-column gap-4">
+              {/* Pricing & Badges */}
+              <Card className="border-0 shadow-sm rounded-4 p-4">
+                <div className="mb-3 d-flex flex-wrap gap-2">
+                  <Badge
+                    bg="primary-subtle"
+                    className="text-primary px-3 py-2 border border-primary-subtle"
+                  >
+                    {product.category_name}
+                  </Badge>
+                  <Badge
+                    bg="info-subtle"
+                    className="text-info px-3 py-2 border border-info-subtle"
+                  >
+                    {product.brand_name}
+                  </Badge>
+                  <Badge
+                    bg={
+                      product.status_name === "Active" ? "success" : "warning"
+                    }
+                    className="px-3 py-2"
+                  >
+                    {product.status_name}
+                  </Badge>
+                </div>
+
+                <h1 className="fw-bold text-primary mb-3">
+                  ৳ {product.base_price.toLocaleString()}
+                </h1>
+                <hr />
+                <h6 className="fw-bold text-muted text-uppercase mb-3">
+                  Product Description
+                </h6>
+                <div
+                  className="text-secondary small lh-lg"
+                  dangerouslySetInnerHTML={{
+                    __html: product.description || "No description available.",
+                  }}
+                />
+              </Card>
+
+              {/* Variants Table */}
+              <Card className="border-0 shadow-sm rounded-4 overflow-hidden">
+                <div className="card-header bg-white py-3 border-0">
+                  <h6 className="mb-0 fw-bold">Stock & Variants</h6>
+                </div>
+                <div className="table-responsive">
+                  <Table hover className="mb-0 align-middle">
+                    <thead className="table-light">
+                      <tr className="small text-uppercase">
+                        <th className="ps-4">SKU</th>
+                        <th>Attributes</th>
+                        <th className="text-end">Price</th>
+                        <th className="text-center pe-4">Stock</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {product.variants?.length > 0 ? (
+                        product.variants.map((v) => (
+                          <tr key={v.id}>
+                            <td className="ps-4 py-3 fw-bold text-primary small">
+                              {v.sku}
+                            </td>
+                            <td className="small">
+                              <span className="text-dark">
+                                {v.color_name || "N/A"}
+                              </span>
+                              <span className="text-muted mx-1">/</span>
+                              <span className="text-dark">
+                                {v.size_name || "N/A"}
+                              </span>
+                            </td>
+                            <td className="text-end fw-bold">
+                              ৳{v.sale_price.toLocaleString()}
+                            </td>
+                            <td className="text-center pe-4">
+                              <Badge
+                                pill
+                                bg={
+                                  v.stock > 10
+                                    ? "success"
+                                    : v.stock > 0
+                                      ? "warning"
+                                      : "danger"
+                                }
+                              >
+                                {v.stock} pcs
+                              </Badge>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan={4}
+                            className="text-center py-4 text-muted"
+                          >
+                            No variants available
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </Table>
+                </div>
+              </Card>
+            </div>
+          </Col>
+        </Row>
       </div>
     </div>
   );
