@@ -63,27 +63,19 @@ const ManageProducts = () => {
   //delete product
 
   const handleDelete = (id: number) => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        api
-          .delete(`/products/${id}`)
-          .then((res) => {
-            Swal.fire("Deleted!", "Product has been deleted.", "success");
-            fetchProducts(currentPage);
-          })
-          .catch((err) => {
-            Swal.fire("Error!", "Something went wrong.", "error");
-          });
-      }
-    });
+    api
+      .delete(`/products/${id}`)
+      .then((res) => {
+        // ✅ প্রফেশনাল অ্যাপ্রোচ: সার্ভারে ডিলিট হওয়ার পর স্টেট থেকে ফিল্টার করা
+        setProducts((prev) => prev.filter((p) => p.product_id !== id));
+        Swal.fire("Success", "Product moved to trash!", "success");
+      })
+      .catch((err) => {
+        // যদি অলরেডি ডিলিট হয়ে থাকে (404), তবুও UI থেকে সরিয়ে দিন
+        if (err.response?.status === 404) {
+          setProducts((prev) => prev.filter((p) => p.product_id !== id));
+        }
+      });
   };
 
   return (
