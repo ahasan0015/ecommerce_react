@@ -14,7 +14,7 @@ const ManageColors = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  // ১. কালার লিস্ট ফেচ করা
+  
   const fetchColors = () => {
     setLoading(true);
     api.get("/colors")
@@ -27,7 +27,7 @@ const ManageColors = () => {
     fetchColors();
   }, []);
 
-  // ২. এডিট মোড সেট করা
+ 
   const handleEdit = (color: Color) => {
     setEditingId(color.id);
     setName(color.name);
@@ -40,7 +40,7 @@ const ManageColors = () => {
     setHexCode("#000000");
   };
 
-  // ৩. সেভ বা আপডেট হ্যান্ডলার
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
@@ -74,7 +74,7 @@ const ManageColors = () => {
   return (
     <div className="container mt-5">
       <div className="row">
-        {/* ফর্ম সেকশন */}
+        {/* From Section*/}
         <div className="col-md-4">
           <div className="card shadow-sm border-0 p-4 sticky-top" style={{ top: "20px" }}>
             <h5 className="fw-bold mb-3">
@@ -127,7 +127,7 @@ const ManageColors = () => {
           </div>
         </div>
 
-        {/* লিস্ট সেকশন */}
+        {/* List Section*/}
         <div className="col-md-8">
           <div className="card shadow-sm border-0">
             <div className="table-responsive">

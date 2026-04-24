@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import api from "../../../config"; // আপনার বেস ইউআরএল কনফিগ
+import api from "../../../config"; 
 import Swal from "sweetalert2";
 
 interface Brand {
   id: number;
   name: string;
   logo: string | null;
-  status_name: string; // Join এর মাধ্যমে আসা স্ট্যাটাস নাম
+  status_name: string; // 
   status_id: number;
 }
 
@@ -16,15 +16,14 @@ const ManageBrands = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // ইমেজ প্রিভিউ করার জন্য বেস ইউআরএল (আপনার লারাভেল ইউআরএল অনুযায়ী পরিবর্তন করুন)
+  
   const storageUrl = "http://localhost:8000/storage/";
 
   const fetchBrands = (page: number = 1) => {
     api
       .get(`/brands?page=${page}`)
       .then((res) => {
-        // লারাভেল পাজিনেশন ডাটা হ্যান্ডেলিং
-        // যদি পাজিনেশন না থাকে তবে সরাসরি res.data দিন
+       
         const data = res.data.data || res.data;
         setBrands(Array.isArray(data) ? data : data.data);
 

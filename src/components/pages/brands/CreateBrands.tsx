@@ -93,13 +93,11 @@ const CreateBrand = () => {
 
       navigate("/brands");
     } catch (err: unknown) {
-      // AxiosError টাইপ গার্ড ব্যবহার করে 'any' রিমুভ করা হয়েছে
       if (axios.isAxiosError(err)) {
         const serverError = err as AxiosError<ApiErrorResponse>;
 
         if (serverError.response?.status === 422) {
-          // লারাভেল ভ্যালিডেশন এরর অবজেক্ট সেট করা
-          // অনেক সময় লারাভেল সরাসরি ডাটা অবজেক্টে এরর পাঠায়, তাই কাস্টিং করা হয়েছে
+         
           const errors = serverError.response.data as ValidationErrors;
           setValidationErrors(errors);
         } else {
@@ -133,7 +131,7 @@ const CreateBrand = () => {
           </Button>
         </div>
 
-        {/* ভ্যালিডেশন এরর মেসেজ বক্স */}
+        {/* Validation Message Box */}
         {validationErrors && (
           <Alert variant="danger" className="py-2">
             <ul className="mb-0 small">

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import api from "../../../config"; // আপনার এপিআই কনফিগ
+import api from "../../../config"; 
 import { NavLink } from "react-router-dom";
 import Swal from "sweetalert2";
 
-// আপনার JSON অনুযায়ী ইন্টারফেস আপডেট করা হয়েছে
+
 interface Variant {
   variant_id: number;
   sku: string;
@@ -14,21 +14,20 @@ interface Variant {
 }
 
 interface Product {
-  product_id: number; // আগে ছিল id
-  product_name: string; // আগে ছিল name
+  product_id: number; 
+  product_name: string;
   slug: string;
   description: string;
   category_name: string;
   brand_name: string;
   status_name: string;
-  variants: Variant[]; // ভেরিয়েন্ট অ্যারে
+  variants: Variant[];
 }
 
 const ManageProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // পাজিনেশন স্টেট
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [lastPage, setLastPage] = useState<number>(1);
   const [total, setTotal] = useState<number>(0);
@@ -43,7 +42,6 @@ const ManageProducts = () => {
           setCurrentPage(res.data.current_page || 1);
           setLastPage(res.data.last_page || 1);
           setTotal(res.data.total || 0);
-          // আপনার JSON অনুযায়ী res.data.data সরাসরি অ্যারে
         }
       })
       .catch((err) => {
@@ -66,12 +64,10 @@ const ManageProducts = () => {
     api
       .delete(`/products/${id}`)
       .then((res) => {
-        // ✅ প্রফেশনাল অ্যাপ্রোচ: সার্ভারে ডিলিট হওয়ার পর স্টেট থেকে ফিল্টার করা
         setProducts((prev) => prev.filter((p) => p.product_id !== id));
         Swal.fire("Success", "Product moved to trash!", "success");
       })
       .catch((err) => {
-        // যদি অলরেডি ডিলিট হয়ে থাকে (404), তবুও UI থেকে সরিয়ে দিন
         if (err.response?.status === 404) {
           setProducts((prev) => prev.filter((p) => p.product_id !== id));
         }
@@ -87,6 +83,12 @@ const ManageProducts = () => {
             Manage your clothing store products here.
           </p>
         </div>
+        <NavLink
+          to="/products/trash"
+          className="btn btn-outline-secondary me-2"
+        >
+          <i className="fa fa-trash"></i> View Trash
+        </NavLink>
         <NavLink
           to={"/products/create"}
           className="btn btn-primary px-4 shadow-sm"
@@ -136,7 +138,6 @@ const ManageProducts = () => {
                       </td>
                       <td>{item.brand_name}</td>
                       <td>
-                        {/* ভেরিয়েন্ট থেকে প্রথমটির প্রাইস দেখানো হচ্ছে */}
                         {item.variants && item.variants.length > 0
                           ? Number(item.variants[0].sale_price).toFixed(2)
                           : "0.00"}

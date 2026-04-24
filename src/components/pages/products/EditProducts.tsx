@@ -79,14 +79,14 @@ const EditProduct = () => {
     loadInitialData();
   }, [id, navigate]);
 
-  // ৪. ফাইল হ্যান্ডলার
+  
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setImage(e.target.files[0]);
     }
   };
 
-  // ৫. আপডেট ফাংশন
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitLoading(true);
@@ -100,7 +100,6 @@ const EditProduct = () => {
     formData.append("base_price", basePrice);
     formData.append("description", description);
 
-    // লারাভেলের জন্য ট্রিক: Multipart FormData-তে PUT কাজ না করলে এটি লাগে
     formData.append("_method", "PUT");
 
     if (image) {

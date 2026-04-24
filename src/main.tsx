@@ -56,6 +56,8 @@ import ProductVariants from "./components/pages/productVariants/ProductVariants.
 import BulkVariantForm from "./components/forms/BulkVariantForm.tsx";
 import CreateProductStatic from "./components/pages/products/CreateProducts.tsx";
 import DetailsOrder from "./components/pages/orders/DetailOrders.tsx";
+import TrashProducts from "./components/pages/products/TrashProducts.tsx";
+
 
 
 const AppRoute = createBrowserRouter([
@@ -71,6 +73,8 @@ const AppRoute = createBrowserRouter([
           { path: "/categories/create", element: <CreateCategory /> },
           { path: "/categories/edit/:id", element: <EditCategory /> },
           { path: "/products", element: <ManageProducts /> },
+          { path: "/products/trash", element: <TrashProducts /> },
+          
           { path: "/orders", element: <ManageOrders /> },
           { path: "/admin/orders/:id", element: <DetailsOrder /> },
           { path: "/products/create", element: <CreateProductStatic /> },
