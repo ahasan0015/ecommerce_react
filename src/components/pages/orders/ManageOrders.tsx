@@ -18,10 +18,9 @@ interface Order {
   total: string;
   created_at: string;
   order_status_id: number;
-  user?: User; // Optional user relationship
+  user?: User;
 }
 
-// SweetAlert Toast configuration for reusable notifications
 const Toast = Swal.mixin({
   toast: true,
   position: "top-end",
@@ -30,25 +29,42 @@ const Toast = Swal.mixin({
   timerProgressBar: true,
 });
 
+// dynamic status color and icon mapper
+const getStatusStyle = (statusName: string) => {
+  switch (statusName) {
+    case "Pending":
+      return { class: "border-warning text-warning", icon: "⏳" };
+    case "Processing":
+      return { class: "border-info text-info", icon: "⚙️" };
+    case "Completed":
+      return { class: "border-success text-success", icon: "✅" };
+    case "Cancelled":
+      return { class: "border-danger text-danger", icon: "❌" };
+    default:
+      return { class: "border-primary text-primary", icon: "📄" };
+  }
+};
+
 const ManageOrders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [statuses, setStatuses] = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // ১. status update
   const handleStatusChange = async (orderId: number, newStatusId: string) => {
+    // এখানে আপনার ডাটাবেস আইডি অনুযায়ী কন্ডিশন চেক করুন (যদি ৪ বাতিল হয়)
     if (newStatusId === "4") {
       const result = await Swal.fire({
         title: "Are You Sure?",
-        text: "Stock will decrease when the order is marked as Delivered",
+        text: "Are you sure you want to cancel this order?",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: "#198754",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes Delivered",
-        cancelButtonText: "Cancel",
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, Cancel it!",
       });
 
       if (!result.isConfirmed) {
+        window.location.reload();
         return;
       }
     }
@@ -59,7 +75,6 @@ const ManageOrders: React.FC = () => {
       });
 
       if (response.data.status === "success") {
-        // local state update
         setOrders((prevOrders) =>
           prevOrders.map((order) =>
             order.id === orderId
@@ -68,7 +83,6 @@ const ManageOrders: React.FC = () => {
           ),
         );
 
-        // SweetAlert Success Toast
         Toast.fire({
           icon: "success",
           title: response.data.message || "Status Updated Successfully",
@@ -77,27 +91,25 @@ const ManageOrders: React.FC = () => {
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
       console.error("Error updating status:", axiosError);
-      console.error("Error updating status:", error);
       Swal.fire({
         icon: "error",
-        title: "ওহ না!",
-
-        text:
-          axiosError.response?.data?.message ||"There was a problem updating the status।",
+        title: "Error!",
+        text: axiosError.response?.data?.message || "Something went wrong.",
       });
+      window.location.reload();
     }
   };
 
   useEffect(() => {
-    api
-      .get("admin/orders")
-      .then((response) => setOrders(response.data))
+    setLoading(true);
+    Promise.all([api.get("admin/orders"), api.get("admin/order-statuses")])
+      .then(([ordersRes, statusRes]) => {
+        setOrders(ordersRes.data);
+        setStatuses(statusRes.data);
+      })
       .catch((error) => {
-        console.error("Error fetching orders:", error);
-        Toast.fire({
-          icon: "error",
-          title: "Failed to load data.!",
-        });
+        console.error("Fetch error:", error);
+        Toast.fire({ icon: "error", title: "Failed to load data!" });
       })
       .finally(() => setLoading(false));
   }, []);
@@ -131,56 +143,64 @@ const ManageOrders: React.FC = () => {
               </thead>
               <tbody>
                 {orders.length > 0 ? (
-                  orders.map((order) => (
-                    <tr key={order.id}>
-                      <td className="ps-4 fw-medium text-primary">
-                        #{order.order_number}
-                      </td>
-                      <td>
-                        <div className="fw-bold text-dark">
-                          {order.user?.name || "Guest User"}
-                        </div>
-                        <small className="text-muted">
-                          {order.user?.email}
-                        </small>
-                      </td>
-                      <td className="fw-bold">
-                        ৳{parseFloat(order.total).toLocaleString()}
-                      </td>
+                  orders.map((order) => {
+                   
+                    const currentStatus = statuses.find(
+                      (s) => s.id === order.order_status_id,
+                    );
+                    const currentStyle = getStatusStyle(
+                      currentStatus?.name || "",
+                    );
 
-                      <td>
-                        <select
-                          className={`form-select form-select-sm fw-bold ${
-                            order.order_status_id === 4
-                              ? "border-success text-success"
-                              : order.order_status_id === 5
-                                ? "border-danger text-danger"
-                                : "border-primary text-primary"
-                          }`}
-                          style={{ width: "140px", cursor: "pointer" }}
-                          value={order.order_status_id}
-                          onChange={(e) =>
-                            handleStatusChange(order.id, e.target.value)
-                          }
-                        >
-                          <option value="1">⏳ Pending</option>
-                          <option value="2">⚙️ Processing</option>
-                          <option value="3">🚚 Shipped</option>
-                          <option value="4">✅ Delivered</option>
-                          <option value="5">❌ Cancelled</option>
-                        </select>
-                      </td>
+                    return (
+                      <tr key={order.id}>
+                        <td className="ps-4 fw-medium text-primary">
+                          #{order.order_number}
+                        </td>
+                        <td>
+                          <div className="fw-bold text-dark">
+                            {order.user?.name || "Guest User"}
+                          </div>
+                          <small className="text-muted">
+                            {order.user?.email}
+                          </small>
+                        </td>
+                        <td className="fw-bold">
+                          ৳{parseFloat(order.total).toLocaleString()}
+                        </td>
 
-                      <td className="text-center">
-                        <Link
-                          to={`/admin/orders/${order.id}`}
-                          className="btn btn-sm btn-outline-primary rounded-pill px-3"
-                        >
-                          View Details
-                        </Link>
-                      </td>
-                    </tr>
-                  ))
+                        <td>
+                          <select
+                            className={`form-select form-select-sm fw-bold ${currentStyle.class}`}
+                            style={{ width: "160px", cursor: "pointer" }}
+                            value={order.order_status_id}
+                            onChange={(e) =>
+                              handleStatusChange(order.id, e.target.value)
+                            }
+                          >
+                            {statuses.map((status) => (
+                              <option
+                                key={status.id}
+                                value={status.id}
+                                className="text-dark"
+                              >
+                                {getStatusStyle(status.name).icon} {status.name}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+
+                        <td className="text-center">
+                          <Link
+                            to={`/admin/orders/${order.id}`}
+                            className="btn btn-sm btn-outline-primary rounded-pill px-3"
+                          >
+                            View Details
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
                     <td colSpan={5} className="text-center py-5 text-muted">
