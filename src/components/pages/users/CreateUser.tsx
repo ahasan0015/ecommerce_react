@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Form, Button } from "react-bootstrap";
-import type { Role } from "../../interfaces/role.interface";
+import type { Role } from "../../interfaces/Role.interface";
 
 import api from "../../../config";
 import { defaultUser, type User } from "../../interfaces/User.interfaces";

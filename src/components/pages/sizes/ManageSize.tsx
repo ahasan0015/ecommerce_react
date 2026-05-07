@@ -50,7 +50,7 @@ const SizeManage = () => {
           cancelEdit();
           fetchSizes();
         })
-        .catch((err) => alert("Update failed!"));
+        .catch(() => alert("Update failed!"));
     } else {
       // ২. নতুন সেভ লজিক
       api.post("/sizes", { name }).then(() => {

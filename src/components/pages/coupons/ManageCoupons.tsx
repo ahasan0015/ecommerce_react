@@ -62,7 +62,7 @@ const ManageCoupons = () => {
                 <th>Min Amount</th>
                 <th>Expiry</th>
                 <th>Status</th>
-                <th width="180">Actions</th>
+                <th>Actions</th>
               </tr>
             </thead>
 

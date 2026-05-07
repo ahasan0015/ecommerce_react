@@ -1,5 +1,3 @@
-import React from "react";
-
 const StaticProfilePage = () => {
   // স্ট্যাটিক ইউজার ডেটা
   const user = {

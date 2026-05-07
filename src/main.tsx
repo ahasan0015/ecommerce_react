@@ -1,69 +1,63 @@
-import { StrictMode } from "react";
+import { StrictMode, lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 
-// css
+// CSS 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 // Context & Route Guard
 import { AuthProvider } from "./../src/components/contex/AtuhContex.tsx";
 import ProtectedRoute from "./../src/components/contex/ProtectedRoute.tsx";
-
-// import './index.css'
 import App from "./App.tsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Dashboard from "./components/Dashboard.tsx";
-import NotFound from "./components/Notfound.tsx";
-import Login from "./components/Login.tsx";
-import Register from "./components/Register.tsx";
 
-//others page
+// Loading component 
+const PageLoader = () => <div className="p-5 text-center">Loading...</div>;
 
-import TshirtPage from "./components/pages/Tshirt.tsx";
-import ShirtCollection from "./components/pages/Shirt.tsx";
-import PantCollection from "./components/pages/Pant.tsx";
-import StaticProfilePage from "./components/Profile.tsx";
-import CartPage from "./components/Cart.tsx";
-import ManageUsers from "./components/pages/users/ManageUsers.tsx";
-import DetailsUser from "./components/pages/users/DetailsUser.tsx";
-import ManageRoles from "./components/pages/roles/ManageRoles.tsx";
-import EditUser from "./components/pages/users/EditUser.tsx";
+// --- Lazy Loading Pages ---
+const Dashboard = lazy(() => import("./components/Dashboard.tsx"));
+const NotFound = lazy(() => import("./components/Notfound.tsx"));
+const Login = lazy(() => import("./components/Login.tsx"));
+const StaticProfilePage = lazy(() => import("./components/Profile.tsx"));
 
-//categories
-import ManageCategories from "./components/pages/categories/ManageCategories.tsx";
-import ManageOrders from "./components/pages/orders/ManageOrders.tsx";
-import ManageProducts from "./components/pages/products/ManageProducts.tsx";
-import Reports from "./components/pages/reports/Reports.tsx";
-import Settings from "./components/pages/settings/Settings.tsx";
-import ManageCoupons from "./components/pages/coupons/ManageCoupons.tsx";
-import CreateUser from "./components/pages/users/CreateUser.tsx";
-//brands
-import ManageBrands from "./components/pages/brands/ManageBrands.tsx";
-import CreateBrand from "./components/pages/brands/CreateBrands.tsx";
-import EditBrand from "./components/pages/brands/EditBrand.tsx";
-//categories
-import CreateCategory from "./components/pages/categories/CreateCategory.tsx";
-import EditCategory from "./components/pages/categories/EditCategories.tsx";
-//products
-import ProductDetails from "./components/pages/products/DetailsProduct.tsx";
-import EditProduct from "./components/pages/products/EditProducts.tsx";
-//sizes
-import ManageSize from "./components/pages/sizes/ManageSize.tsx";
-//colors
-import ManageColors from "./components/pages/colors/ManageColors.tsx";
-//variant
-import ProductVariants from "./components/pages/productVariants/ProductVariants.tsx";
-import BulkVariantForm from "./components/forms/BulkVariantForm.tsx";
-import CreateProductStatic from "./components/pages/products/CreateProducts.tsx";
-import DetailsOrder from "./components/pages/orders/DetailOrders.tsx";
-import TrashProducts from "./components/pages/products/TrashProducts.tsx";
+// Users
+const ManageUsers = lazy(() => import("./components/pages/users/ManageUsers.tsx"));
+const DetailsUser = lazy(() => import("./components/pages/users/DetailsUser.tsx"));
+const EditUser = lazy(() => import("./components/pages/users/EditUser.tsx"));
+const CreateUser = lazy(() => import("./components/pages/users/CreateUser.tsx"));
+const ManageRoles = lazy(() => import("./components/pages/roles/ManageRoles.tsx"));
 
+// Products & Categories
+const ManageCategories = lazy(() => import("./components/pages/categories/ManageCategories.tsx"));
+const CreateCategory = lazy(() => import("./components/pages/categories/CreateCategory.tsx"));
+const EditCategory = lazy(() => import("./components/pages/categories/EditCategories.tsx"));
+const ManageProducts = lazy(() => import("./components/pages/products/ManageProducts.tsx"));
+const CreateProductStatic = lazy(() => import("./components/pages/products/CreateProducts.tsx"));
+const ProductDetails = lazy(() => import("./components/pages/products/DetailsProduct.tsx"));
+const EditProduct = lazy(() => import("./components/pages/products/EditProducts.tsx"));
+const TrashProducts = lazy(() => import("./components/pages/products/TrashProducts.tsx"));
 
+// Orders, Brands, etc.
+const ManageOrders = lazy(() => import("./components/pages/orders/ManageOrders.tsx"));
+const DetailsOrder = lazy(() => import("./components/pages/orders/DetailOrders.tsx"));
+const ManageBrands = lazy(() => import("./components/pages/brands/ManageBrands.tsx"));
+const CreateBrand = lazy(() => import("./components/pages/brands/CreateBrands.tsx"));
+const EditBrand = lazy(() => import("./components/pages/brands/EditBrand.tsx"));
+const Reports = lazy(() => import("./components/pages/reports/Reports.tsx"));
+const Settings = lazy(() => import("./components/pages/settings/Settings.tsx"));
+const ManageCoupons = lazy(() => import("./components/pages/coupons/ManageCoupons.tsx"));
+const ManageSize = lazy(() => import("./components/pages/sizes/ManageSize.tsx"));
+const ManageColors = lazy(() => import("./components/pages/colors/ManageColors.tsx"));
+const ProductVariants = lazy(() => import("./components/pages/productVariants/ProductVariants.tsx"));
 
 const AppRoute = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <App />
+      </Suspense>
+    ),
     children: [
       {
         element: <ProtectedRoute allowedRoles={["admin", "manager"]} />,
@@ -74,7 +68,6 @@ const AppRoute = createBrowserRouter([
           { path: "/categories/edit/:id", element: <EditCategory /> },
           { path: "/products", element: <ManageProducts /> },
           { path: "/products/trash", element: <TrashProducts /> },
-          
           { path: "/orders", element: <ManageOrders /> },
           { path: "/admin/orders/:id", element: <DetailsOrder /> },
           { path: "/products/create", element: <CreateProductStatic /> },
@@ -82,7 +75,6 @@ const AppRoute = createBrowserRouter([
           { path: "/products/edit/:id", element: <EditProduct /> },
         ],
       },
-      // ২. শুধুমাত্র Admin এই রাউটগুলো দেখতে পারবে
       {
         element: <ProtectedRoute allowedRoles={["admin"]} />,
         children: [
@@ -90,50 +82,29 @@ const AppRoute = createBrowserRouter([
           { path: "/users/create", element: <CreateUser /> },
           { path: "/users/edit/:id", element: <EditUser /> },
           { path: "/users", element: <ManageUsers /> },
-          { path: "reports", element: <Reports /> },
-          { path: "settings", element: <Settings /> },
           { path: "/roles", element: <ManageRoles /> },
           { path: "/reports", element: <Reports /> },
           { path: "/settings", element: <Settings /> },
           { path: "/coupons", element: <ManageCoupons /> },
-          //brands
           { path: "/brands", element: <ManageBrands /> },
           { path: "/brands/create", element: <CreateBrand /> },
           { path: "/brands/edit/:id", element: <EditBrand /> },
-          //sizes
-          { path: "/variants/create", element: <BulkVariantForm /> },
-
           { path: "/variants/products/:id", element: <ProductVariants /> },
           { path: "/sizes", element: <ManageSize /> },
-          //colors
           { path: "/colors", element: <ManageColors /> },
-
         ],
       },
-      
-      { path: "/men/t-shirts", element: <TshirtPage /> },
-      { path: "/men/shirts", element: <ShirtCollection /> },
-      { path: "/men/pants", element: <PantCollection /> },
       { path: "/profile", element: <StaticProfilePage /> },
-      { path: "/cart", element: <CartPage /> },
-
-      //Product variants Form
     ],
   },
   { path: "/login", element: <Login /> },
-  { path: "/register", element: <Register /> },
   { path: "*", element: <NotFound /> },
 ]);
-// createRoot(document.getElementById('root')!).render(
-//   <StrictMode>
-//     <RouterProvider router={AppRoute} />
-//   </StrictMode>,
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    {/* ১. AuthProvider দিয়ে পুরো অ্যাপকে র‍্যাপ করা হয়েছে */}
     <AuthProvider>
-      {/* ২. RouterProvider-এ আমাদের নতুন কনফিগার করা রুটগুলো পাস করা হয়েছে */}
       <RouterProvider router={AppRoute} />
     </AuthProvider>
-  </StrictMode>,
+  </StrictMode>
 );

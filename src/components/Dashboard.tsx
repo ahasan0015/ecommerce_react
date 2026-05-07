@@ -1,4 +1,3 @@
-import React from "react";
 import "../assets/css/Dashboard.css";
 
 export default function AdminDashboard() {

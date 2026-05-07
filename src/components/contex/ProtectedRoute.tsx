@@ -10,14 +10,14 @@ const ProtectedRoute = ({ allowedRoles }: Props) => {
 
   if (loading) return <div>Loading...</div>;
 
-  // ইউজার লগইন না থাকলে লগইন পেজে পাঠাবে
+  // if user not loging redirect to login page
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // ইউজারের রোল যদি অনুমোদিত রোলের তালিকায় না থাকে
+  // if role is not valid
   if (!allowedRoles.includes(user.role)) {
-    return <Navigate to="/dashboard" replace />; // অথবা Unauthorized পেজ
+    return <Navigate to="/dashboard" replace />; 
   }
 
   return <Outlet />;

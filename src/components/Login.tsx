@@ -3,11 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import bgImage from "../../public/images/banner.jpg"; 
 import { defaultUser, type User } from "./interfaces/User.interfaces";
 import api from "../config";
-import { useAuth } from "../../src/components/contex/AtuhContex"; // useAuth ইম্পোর্ট করুন
+import { useAuth } from "../../src/components/contex/AtuhContex"; // useAuth 
 
 function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth(); // login ফাংশনটি বের করে নিন
+  const { login } = useAuth(); // login 
   const [user, setUser] = useState<User>(defaultUser);
 
   useEffect(() => {
@@ -20,7 +20,7 @@ const handelLogin = (e: React.FormEvent) => {
   api.post("/admin/login", user)
     .then((res) => {
       if (res.data.success && res.data.token) {
-        // এখন res.data.user.role সরাসরি 'admin' অথবা 'manager' স্ট্রিং হিসেবে আসবে
+        // res.data.user.role  'admin' or 'manager'
         login({
           token: res.data.token,
           role: res.data.user.role, 

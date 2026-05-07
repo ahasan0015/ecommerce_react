@@ -3,10 +3,13 @@
 import axios from "axios";
 
 // Base URLs
-const baseApiUrl = "http://127.0.0.1:8000/api/"; // For API calls
-const baseUrl = "http://127.0.0.1:8000/";        // Main website URL (if needed)
+// const baseApiUrl = "http://127.0.0.1:8000/api/"; // For API calls
+const baseApiUrl = "https://ecom-api.ahasanhabibroxy.online/api/"; // For API calls
+// const baseUrl = "http://127.0.0.1:8000/";        // Main website URL (if needed)
+const baseUrl = "https://ecom-api.ahasanhabibroxy.online/";        // Main website URL (if needed)
+const storageUrl = `${baseUrl}storage/`;
 
-export { baseUrl }; // export main URL if you need it elsewhere
+export { baseUrl, storageUrl }; // export main URL and storage URL for use elsewhere
 
 // Axios instance
 const api = axios.create({

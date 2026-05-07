@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import api from "../../../config";
+import api, { storageUrl } from "../../../config"; // - কেন্দ্রীয় কনফিগ থেকে ইম্পোর্ট
 import {
   Spinner,
   Badge,
@@ -51,31 +51,30 @@ const DetailsProduct = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [activeIndex, setActiveIndex] = useState<number>(0);
 
-  const storageUrl = "http://127.0.0.1:8000/storage/";
+  // লাইভ সার্ভারের জন্য ডাইনামিক স্টোরেজ ইউআরএল ব্যবহার করা হয়েছে
 
   useEffect(() => {
-    fetchProduct();
-    // Scroll to top on load
-    window.scrollTo(0, 0);
-  }, [id]);
-
-  const fetchProduct = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get(`/products/${id}`);
-      if (res.data.success) {
-        setProduct(res.data.data);
-      } else {
-        Swal.fire("Error", "Product not found!", "error");
-        navigate("/products");
+    const fetchProduct = async () => {
+      setLoading(true);
+      try {
+        const res = await api.get(`/products/${id}`);
+        if (res.data.success) {
+          setProduct(res.data.data);
+        } else {
+          Swal.fire("Error", "Product not found!", "error");
+          navigate("/products");
+        }
+      } catch (err) {
+        console.error("Fetch Error:", err);
+        Swal.fire("Error", "Failed to load product details", "error");
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Fetch Error:", err);
-      Swal.fire("Error", "Failed to load product details", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchProduct();
+    window.scrollTo(0, 0);
+  }, [id, navigate]);
 
   const handleSelect = (selectedIndex: number) => {
     setActiveIndex(selectedIndex);
@@ -159,7 +158,7 @@ const DetailsProduct = () => {
                     <img
                       src={
                         product.main_image
-                          ? `${storageUrl}${product.main_image}`
+                          ? `${storageUrl}${product.main_image}` //
                           : "https://via.placeholder.com/500x400?text=No+Image"
                       }
                       className="img-fluid"
@@ -177,7 +176,7 @@ const DetailsProduct = () => {
                       style={{ height: "400px" }}
                     >
                       <img
-                        src={`${storageUrl}${img.image}`}
+                        src={`${storageUrl}${img.image}`} //
                         className="img-fluid"
                         alt={`gallery-${idx}`}
                         style={{ maxHeight: "100%", objectFit: "contain" }}
@@ -191,7 +190,7 @@ const DetailsProduct = () => {
               <Card.Body className="bg-light border-top p-3">
                 <div className="d-flex gap-2 overflow-auto justify-content-start flex-nowrap pb-2">
                   <img
-                    src={`${storageUrl}${product.main_image}`}
+                    src={`${storageUrl}${product.main_image}`} //
                     className={`img-thumbnail rounded-3 flex-shrink-0 ${activeIndex === 0 ? "border-primary border-2" : ""}`}
                     style={{
                       width: "65px",
@@ -205,7 +204,7 @@ const DetailsProduct = () => {
                   {product.gallery?.map((img, idx) => (
                     <img
                       key={idx}
-                      src={`${storageUrl}${img.image}`}
+                      src={`${storageUrl}${img.image}`} //
                       className={`img-thumbnail rounded-3 flex-shrink-0 ${activeIndex === idx + 1 ? "border-primary border-2" : ""}`}
                       style={{
                         width: "65px",
@@ -225,7 +224,6 @@ const DetailsProduct = () => {
           {/* Right Column: Information & Variants */}
           <Col lg={6}>
             <div className="d-flex flex-column gap-4">
-              {/* Pricing & Badges */}
               <Card className="border-0 shadow-sm rounded-4 p-4">
                 <div className="mb-3 d-flex flex-wrap gap-2">
                   <Badge
