@@ -1,38 +1,56 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import bgImage from "../../public/images/banner.jpg"; 
+import bgImage from "../../public/images/banner.jpg";
 import { defaultUser, type User } from "./interfaces/User.interfaces";
 import api from "../config";
-import { useAuth } from "../../src/components/contex/AtuhContex"; // useAuth 
+import { useAuth } from "../../src/components/contex/AtuhContex";
+import Swal from "sweetalert2";
 
 function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth(); // login 
-  const [user, setUser] = useState<User>(defaultUser);
+  const { login } = useAuth();
+
+  const [user, setUser] = useState<User>({
+    ...defaultUser,
+    email: "ahasanstu92@gmail.com",
+    password: "12345678",
+  });
 
   useEffect(() => {
     document.title = "Login";
   }, []);
 
-const handelLogin = (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  api.post("/admin/login", user)
-    .then((res) => {
-      if (res.data.success && res.data.token) {
-        // res.data.user.role  'admin' or 'manager'
-        login({
-          token: res.data.token,
-          role: res.data.user.role, 
-        });
+  const handelLogin = (e: React.FormEvent) => {
+    e.preventDefault();
 
-        navigate("/dashboard");
-      }
-    })
-    .catch((err) => {
-      console.log(err.response);
-    });
-}
+    api
+      .post("/admin/login", user)
+      .then((res) => {
+        if (res.data.success && res.data.token) {
+          login({
+            token: res.data.token,
+            role: res.data.user.role,
+          });
+          Swal.fire({
+            icon: "success",
+            title: "Success!",
+            text: "Login Successful",
+            timer: 1500,
+            showConfirmButton: false,
+          }).then(() => {
+            navigate("/dashboard");
+          });
+        }
+      })
+      .catch((err) => {
+        // for error handling
+        Swal.fire({
+          icon: "error",
+          title: "Login Failed",
+          text: err.response?.data?.message || "Invalid credentials",
+        });
+      });
+  };
   return (
     <div
       className="min-vh-100 d-flex justify-content-center align-items-center"
@@ -44,10 +62,20 @@ const handelLogin = (e: React.FormEvent) => {
       }}
     >
       <div className="col-md-5">
-        <div className="card shadow-lg" style={{ backdropFilter: "blur(10px)", backgroundColor: "rgba(255, 255, 255, 0.85)" }}>
+        <div
+          className="card shadow-lg"
+          style={{
+            backdropFilter: "blur(10px)",
+            backgroundColor: "rgba(255, 255, 255, 0.85)",
+          }}
+        >
           <div className="card-body p-4">
-            <h4 className="fw-bold mb-3 text-center text-primary">Next Fashion Login</h4>
-            <p className="text-center text-muted mb-4">Welcome back! Please login to your account.</p>
+            <h4 className="fw-bold mb-3 text-center text-primary">
+              Next Fashion Login
+            </h4>
+            <p className="text-center text-muted mb-4">
+              Welcome back! Please login to your account.
+            </p>
 
             <form onSubmit={handelLogin}>
               <div className="mb-3">
@@ -70,12 +98,16 @@ const handelLogin = (e: React.FormEvent) => {
                   placeholder="Enter your password"
                   required
                   value={user.password ?? ""}
-                  onChange={(e) => setUser({ ...user, password: e.target.value })}
+                  onChange={(e) =>
+                    setUser({ ...user, password: e.target.value })
+                  }
                 />
               </div>
 
               <div className="d-grid mb-3">
-                <button className="btn btn-primary btn-lg" type="submit">Login</button>
+                <button className="btn btn-primary btn-lg" type="submit">
+                  Login
+                </button>
               </div>
 
               <p className="text-center mb-0">

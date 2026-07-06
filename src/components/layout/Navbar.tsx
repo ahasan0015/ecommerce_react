@@ -1,17 +1,35 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import "./Navbar.css";
-import { useAuth } from "../../../src/components/contex/AtuhContex"; // আপনার AuthContext এর পাথ অনুযায়ী দিন
+import { useAuth } from "../../../src/components/contex/AtuhContex"; // AuthContext path
+import Swal from "sweetalert2";
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth(); // Context থেকে user এবং logout নিয়ে আসা
+  const { user, logout } = useAuth(); // Context to user and logout 
 
-  const handleLogout = () => {
-    // ১. Context এর logout ফাংশন কল করা (এটি localStorage থেকে token এবং role মুছে দেবে)
-    logout(); 
-    
-    // ২. লগইন পেজে পাঠিয়ে দেওয়া
-    navigate('/login');
+const handleLogout = () => {
+    //sweet aleart confirmation
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You will be logged out of your account!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, Logout!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // if user confirms, call the logout function from context and navigate to login page
+        logout(); 
+        navigate('/login');
+        
+        Swal.fire(
+          'Logged Out!',
+          'You have been logged out successfully.',
+          'success'
+        );
+      }
+    });
   };
 
   return (
@@ -43,7 +61,7 @@ export default function Navbar() {
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
               >
-                {/* ইউজারের নাম ডাইনামিক করা */}
+                {/* user name dynamic */}
                 👤 {user?.role === 'admin' ? 'Admin' : 'Manager'}
               </NavLink>
               <ul className="dropdown-menu dropdown-menu-end shadow border-0">

@@ -1,4 +1,4 @@
-import { StrictMode, lazy, Suspense } from "react";
+import {lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 
 // CSS 
@@ -9,7 +9,7 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import { AuthProvider } from "./../src/components/contex/AtuhContex.tsx";
 import ProtectedRoute from "./../src/components/contex/ProtectedRoute.tsx";
 import App from "./App.tsx";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 
 // Loading component 
 const PageLoader = () => <div className="p-5 text-center">Loading...</div>;
@@ -60,6 +60,10 @@ const AppRoute = createBrowserRouter([
     ),
     children: [
       {
+        index: true, 
+        element: <Navigate to="/login" replace /> 
+      },
+      {
         element: <ProtectedRoute allowedRoles={["admin", "manager"]} />,
         children: [
           { path: "dashboard", element: <Dashboard /> },
@@ -102,9 +106,7 @@ const AppRoute = createBrowserRouter([
 ]);
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <AuthProvider>
-      <RouterProvider router={AppRoute} />
-    </AuthProvider>
-  </StrictMode>
+  <AuthProvider>
+  <RouterProvider router={AppRoute} />
+</AuthProvider>
 );
