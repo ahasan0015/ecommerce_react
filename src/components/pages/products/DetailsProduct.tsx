@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import api, { storageUrl } from "../../../config"; // - কেন্দ্রীয় কনফিগ থেকে ইম্পোর্ট
+import api, { storageUrl } from "../../../config"; // - config
 import {
   Spinner,
   Badge,
@@ -51,7 +51,7 @@ const DetailsProduct = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [activeIndex, setActiveIndex] = useState<number>(0);
 
-  // লাইভ সার্ভারের জন্য ডাইনামিক স্টোরেজ ইউআরএল ব্যবহার করা হয়েছে
+  // dynamic image
 
   useEffect(() => {
     const fetchProduct = async () => {

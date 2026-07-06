@@ -1,14 +1,8 @@
-
-//update version for protected route
 import axios from "axios";
 
 // Base URLs
-// const baseApiUrl = "http://127.0.0.1:8000/api/"; // For API calls
-
-
-//for hosting
-const baseApiUrl = "https://ecom-api.ahasanhabibroxy.online/api/";
-
+export const baseApiUrl = "https://ecom-api.ahasanhabibroxy.online/api/";
+export const storageUrl = "https://ecom-api.ahasanhabibroxy.online/storage/";
 
 // Axios instance
 const api = axios.create({
@@ -33,59 +27,10 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
-      window.location.href = "/login"; // redirect to login if token expired
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   }
 );
 
 export default api;
-
-
-
-// //local
-// const token = localStorage.getItem('token');
-
-
-
-
-// const baseApiUrl ="http://127.0.0.1:8000/api/";
-// const baseUrl ="http://127.0.0.1:8000/";
-
-// export {baseUrl};
-
-// const api = axios.create({
-//     baseURL: baseApiUrl,
-//     headers: {
-//         "Content-Type": "application/json",
-//         Accept: "application/json",
-//         Authorization:`Bearer ${token}`
-        
-//     }
-// });
-// export default api;
-
-//2nd one
-
-// const baseApiUrl = "http://127.0.0.1:8000/api/";
-// const baseUrl = "http://127.0.0.1:8000/";
-
-// export { baseUrl };
-// const api = axios.create({
-//   baseURL: baseApiUrl,
-//   headers: {
-//     // "Content-Type": "application/json",
-//     Accept: "application/json",
-//   },
-// });
-
-
-// api.interceptors.request.use((config) => {
-//   const token = localStorage.getItem("token"); 
-//   if (token) {
-//     config.headers.Authorization = `Bearer ${token}`;
-//   }
-//   return config;
-// });
-
-// export default api;
