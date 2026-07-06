@@ -1,14 +1,13 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import "./Navbar.css";
-import { useAuth } from "../../../src/components/contex/AtuhContex"; // AuthContext path
+import { useAuth } from "../../../src/components/contex/AtuhContex"; 
 import Swal from "sweetalert2";
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth(); // Context to user and logout 
+  const { user, logout } = useAuth();
 
-const handleLogout = () => {
-    //sweet aleart confirmation
+  const handleLogout = () => {
     Swal.fire({
       title: 'Are you sure?',
       text: "You will be logged out of your account!",
@@ -19,15 +18,9 @@ const handleLogout = () => {
       confirmButtonText: 'Yes, Logout!'
     }).then((result) => {
       if (result.isConfirmed) {
-        // if user confirms, call the logout function from context and navigate to login page
         logout(); 
         navigate('/login');
-        
-        Swal.fire(
-          'Logged Out!',
-          'You have been logged out successfully.',
-          'success'
-        );
+        Swal.fire('Logged Out!', 'You have been logged out successfully.', 'success');
       }
     });
   };
@@ -35,24 +28,24 @@ const handleLogout = () => {
   return (
     <nav className="navbar navbar-expand-lg shadow-sm navbar-gradient">
       <div className="container-fluid">
-        {/* Logo */}
         <NavLink className="navbar-brand fw-bold text-white" to="/dashboard">
           NEXT Admin
         </NavLink>
 
-        {/* Mobile Toggle */}
         <button
-          className="navbar-toggler"
+          className="navbar-toggler border-0 shadow-none"
           type="button"
           data-bs-toggle="collapse"
           data-bs-target="#adminNavbar"
+          aria-controls="adminNavbar"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
         >
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        {/* Right Side */}
         <div className="collapse navbar-collapse" id="adminNavbar">
-          <ul className="navbar-nav ms-auto align-items-center gap-2">
+          <ul className="navbar-nav ms-auto align-items-lg-center">
             <li className="nav-item dropdown">
               <NavLink
                 className="nav-link dropdown-toggle text-white fw-semibold"
@@ -61,10 +54,9 @@ const handleLogout = () => {
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
               >
-                {/* user name dynamic */}
                 👤 {user?.role === 'admin' ? 'Admin' : 'Manager'}
               </NavLink>
-              <ul className="dropdown-menu dropdown-menu-end shadow border-0">
+              <ul className="dropdown-menu dropdown-menu-lg-end shadow border-0 mt-2">
                 <li>
                   <NavLink className="dropdown-item py-2" to="/profile">
                     <i className="bi bi-person me-2"></i> Profile

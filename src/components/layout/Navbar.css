@@ -4,59 +4,45 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
+/* Navbar Toggler (Mobile icon color) */
+.navbar-toggler-icon {
+  filter: invert(1);
+}
+
 /* Nav-link hover */
 .navbar .nav-link {
   color: #fff !important;
   transition: all 0.3s ease;
 }
-.navbar .nav-link:hover {
-  opacity: 0.85;
+
+/* Dropdown menu positioning for Mobile vs Desktop */
+@media (max-width: 991px) {
+  .dropdown-menu {
+    border-radius: 0 !important;
+    background: #fff8f8 !important;
+    margin-top: 10px !important;
+  }
 }
 
-/* Dropdown menu */
 .dropdown-menu {
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   min-width: 180px;
-  padding: 0.25rem 0; /* tighter spacing */
-}
-
-/* Remove default list spacing */
-.dropdown-menu li {
-  margin: 0;
-  padding: 0;
-  line-height: 1.4;
+  padding: 0.5rem 0;
 }
 
 /* Dropdown items hover */
 .dropdown-item {
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1rem;
   transition: all 0.2s ease;
 }
+
 .dropdown-item:hover {
-  background-color: #ff6b6b;
-  color: #fff !important;
+  background-color: #ffeaea;
+  color: #ff4b2b !important;
 }
 
-/* Logout button style (matches dropdown-item perfectly) */
-.dropdown-item-logout {
-  display: block;
-  width: 100%;
-  padding: 0.5rem 1rem;
-  font-size: 0.95rem;
-  font-weight: 500;
-  text-align: left;
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  line-height: 1.4; /* match other dropdown items */
-  margin: 0; /* remove extra spacing */
-  border-radius: 0.25rem;
-  transition: all 0.2s ease;
-}
-
-.dropdown-item-logout:hover {
-  background-color: #f87171; /* subtle red hover */
-  color: #fff;
-  transform: translateX(2px); /* subtle slide */
+/* Logout specific */
+.text-danger:hover {
+  background-color: #fee2e2 !important;
 }
